@@ -1,12 +1,27 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/router';
+import { Preloader, PreloaderService } from '../components';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, Preloader],
+  styleUrl: './app.scss',
   templateUrl: './app.html',
-  styleUrl: './app.css'
 })
 export class App {
-  protected readonly title = signal('text-annonations');
+  private readonly router = inject(Router);
+  private readonly preloader = inject(PreloaderService);
+
+  constructor () {
+    this.router.events.pipe(takeUntilDestroyed())
+      .subscribe((event) => {
+        if (event instanceof NavigationStart && !this.preloader.isShown()) {
+          this.preloader.show();
+        }
+        if (event instanceof NavigationEnd && this.preloader.isShown()) {
+          this.preloader.hide();
+        }
+      });
+  }
 }

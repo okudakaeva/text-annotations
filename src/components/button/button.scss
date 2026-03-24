@@ -1,0 +1,25 @@
+.button {
+  border: 0;
+  border-radius: 3px;
+  height: var(--form-height);
+  font-size: var(--form-font-size);
+  font-family: var(--font-family);
+  padding: var(--form-padding-v) var(--form-padding-h);
+  background: #000;
+  color: white;
+  box-sizing: content-box;
+  cursor: pointer;
+
+  &:active {
+    text-shadow: 0 0 1px #fff;
+  }
+
+  &:hover {
+    opacity: .8;
+  }
+
+  &.light {
+    box-shadow: inset 0 0 1px #000;
+    background: #fff;
+  }
+}

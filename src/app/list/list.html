@@ -1,0 +1,30 @@
+@if (initialized()) {
+  <div class="list">
+  <app-toolbar><a routerLink="/article/new">Создать статью</a></app-toolbar>
+    @for (article of articles; track article.id) {
+      <article>
+      <app-toolbar>
+        <h2><a routerLink="/article/{{article.id}}">{{ article.title }}</a></h2>
+        <div class="buttons">
+          <app-button
+            title="&#128465;"
+            type="button"
+            hint="Удалить"
+            theme="light"
+            (clickAction)="deleteArticle(article)"/>
+          <app-button
+            title="&#9999;"
+            type="button"
+            hint="Редактировать"
+            theme="light"
+            (clickAction)="goToEdit(article.id)"/>
+        </div>
+      </app-toolbar>
+      </article>
+    } @empty {
+      <h2>Статей еще нет</h2>
+      <p>Создайте первую статью</p>
+    }
+    <app-toolbar><a routerLink="/article/new">Создать статью</a></app-toolbar>
+  </div>
+}

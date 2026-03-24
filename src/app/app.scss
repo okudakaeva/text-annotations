@@ -1,0 +1,9 @@
+.page {
+  border-radius: 3px;
+  width: 80dvw;
+  margin: 0 auto;
+  min-height: calc(var(--main-height) - var(--main-gap) * 4);
+  padding: var(--main-gap);
+  background: white;
+  position: relative;
+}

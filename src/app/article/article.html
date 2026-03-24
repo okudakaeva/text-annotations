@@ -1,0 +1,19 @@
+<h1>{{  article().title }}</h1>
+<div [innerHTML]="article().text"></div>
+<app-toolbar>
+  <a routerLink="/">К списку статей</a>
+  <div class="buttons">
+    <app-button
+      title="&#128465;"
+      type="button"
+      hint="Удалить"
+      theme="light"
+      (clickAction)="deleteArticle()"/>
+    <app-button
+      title="&#9999;"
+      type="button"
+      hint="Редактировать"
+      theme="light"
+      (clickAction)="goToEdit()"/>
+  </div>
+</app-toolbar>
