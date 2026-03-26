@@ -1,0 +1,29 @@
+.annotation-dialog {
+  padding: 0 var(--form-padding-v);
+
+  textarea {
+    width: calc(100% - var(--form-padding-h) * 2 - 2px);
+    border: 0;
+    box-shadow: var(--shadow);
+    padding: var(--form-padding-v) var(--form-padding-h);
+    margin-bottom: var(--form-margin);
+    font-size: var(--form-font-size);
+    font-family: var(--font-family);
+    border-radius: 1px;
+
+
+    &:focus {
+      box-shadow: var(--shadow-focus);
+    }
+
+    .ng-submitted &.ng-invalid {
+      outline: 1px solid #FA2E2E7F;
+    }
+  }
+
+  label {
+    opacity: .5;
+    font-size: var(--form-font-size);
+    font-family: var(--font-family);
+  }
+}

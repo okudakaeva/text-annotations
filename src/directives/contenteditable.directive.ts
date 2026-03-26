@@ -3,12 +3,12 @@ import {
   ElementRef,
   forwardRef,
   HostListener,
-  inject,
+  inject, OnDestroy, OnInit,
   Renderer2,
-  SecurityContext,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { DomSanitizer } from '@angular/platform-browser';
+import DOMPurify from 'dompurify';
+import { sanitizerConfig } from './sanitizer.cfg';
 
 @Directive({
   selector: '[contenteditable][formControlName], [contenteditable][formControl], [contenteditable][ngModel]',
@@ -18,15 +18,19 @@ import { DomSanitizer } from '@angular/platform-browser';
     multi: true
   }]
 })
-export class ContentEditableDirective implements ControlValueAccessor {
+export class ContentEditableDirective implements ControlValueAccessor, OnInit, OnDestroy {
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
-  private el = inject(ElementRef);
+  private el = inject(ElementRef<HTMLElement>);
   private renderer = inject(Renderer2);
-  private sanitizer = inject(DomSanitizer);
+  private observer: MutationObserver | null = null;
+
+  ngOnInit(): void {
+    this.setupMutationObserver();
+  }
 
   writeValue (value: string): void {
-    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, value);
+    const sanitized = this.sanitizeHtml(value || '');
     this.renderer.setProperty(this.el.nativeElement, 'innerHTML', sanitized || '');
   }
 
@@ -40,8 +44,7 @@ export class ContentEditableDirective implements ControlValueAccessor {
 
   @HostListener('input')
   onInput (): void {
-    const value = this.el.nativeElement.innerHTML;
-    this.onChange(value);
+    this.updateModel();
   }
 
   @HostListener('blur')
@@ -70,5 +73,36 @@ export class ContentEditableDirective implements ControlValueAccessor {
 
     const value = this.el.nativeElement.innerHTML;
     this.onChange(value);
+  }
+
+  private updateModel(): void {
+    const value = this.el.nativeElement.innerHTML;
+    this.onChange(value);
+  }
+
+  private setupMutationObserver(): void {
+    this.observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' || mutation.type === 'characterData') {
+          this.updateModel();
+        }
+      });
+    });
+
+    this.observer.observe(this.el.nativeElement, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  }
+
+  private sanitizeHtml(html: string): string {
+    return DOMPurify.sanitize(html, sanitizerConfig);
+  }
+
+  ngOnDestroy(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 }

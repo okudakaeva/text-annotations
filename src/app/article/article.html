@@ -1,8 +1,8 @@
 <h1>{{  article().title }}</h1>
-<div [innerHTML]="article().text"></div>
+<div [innerHTML]="article().text | safeHtmlWithAnnotations"></div>
 <app-toolbar>
   <a routerLink="/">К списку статей</a>
-  <div class="buttons">
+  <div class="actions">
     <app-button
       title="&#128465;"
       type="button"

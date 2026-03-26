@@ -1,4 +1,4 @@
-import { CommonStorage } from './commonStorage';
+import { CommonStorage } from './common-storage';
 import { Injectable } from '@angular/core';
 import { delay, map, Observable, of } from 'rxjs';
 import { HttpResponse } from '@angular/common/http';

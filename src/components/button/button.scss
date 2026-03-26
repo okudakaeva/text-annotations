@@ -21,5 +21,10 @@
   &.light {
     box-shadow: inset 0 0 1px #000;
     background: #fff;
+    color: black;
+
+    &:active {
+      text-shadow: 0 0 1px #000;
+    }
   }
 }

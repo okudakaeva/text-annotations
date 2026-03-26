@@ -1,12 +1,19 @@
 <form [formGroup]="articleForm" (ngSubmit)="saveArticle()">
   <div class="article-form">
     <input id="article-title" type="text" formControlName="title" placeholder="Придумайте заголовок">
-    <div #articleText id='article-text' contenteditable="true" formControlName="text"
-         data-placeholder="Напишите текст статьи" [class.empty]="isTextEmpty()"></div>
+    <div #articleText
+         id='article-text'
+         contenteditable="true"
+         formControlName="text"
+         data-placeholder="Напишите текст статьи. Для создания аннотации к тексту выделите текст и нажмите кнопку создания аннотации под выделенным текстом"
+         [class.empty]="isTextEmpty()"
+         appSelectionTracker
+         (selectionDetected)="onSelectionDetected($event)"
+    ></div>
   </div>
   <app-toolbar>
     <a routerLink="/">К списку статей</a>
-    <div class="buttons">
+    <div class="actions">
       @if (!isCreationMode()) {
         <app-button
           title="&#128465;"
@@ -18,4 +25,5 @@
       <app-button title="Сохранить"/>
     </div>
   </app-toolbar>
+  <app-annotation-button/>
 </form>

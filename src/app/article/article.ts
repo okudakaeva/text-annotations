@@ -1,22 +1,30 @@
-import { Component, inject, input } from '@angular/core';
-import { ArticleService, IArticle } from '../../services';
+import { Component, inject, input, OnChanges, SimpleChanges } from '@angular/core';
+import { AnnotationsRenderer, ArticleService, IAnnotationList, IArticle } from '../../services';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button, PreloaderService, Toolbar } from '../../components';
 import { finalize } from 'rxjs';
+import { SafeHtmlWithAnnotationsPipe } from '../../directives';
 
 @Component({
   selector: 'app-article',
-  imports: [RouterLink, Toolbar, Button],
+  imports: [RouterLink, Toolbar, Button, SafeHtmlWithAnnotationsPipe],
   templateUrl: './article.html',
   styleUrl: './article.scss',
 })
-export class Article {
+export class Article implements OnChanges {
   article = input.required<IArticle>();
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private articleService = inject(ArticleService);
+  annotations = input.required<IAnnotationList>();
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly articleService = inject(ArticleService);
   private readonly preloader = inject(PreloaderService);
+  private readonly annotationsRenderer = inject(AnnotationsRenderer);
 
+  ngOnChanges (changes: SimpleChanges) {
+    if (changes['article'] && this.article()) {
+      this.annotationsRenderer.initData(this.annotations());
+    }
+  }
 
   goToEdit (): void {
     this.router.navigate(['edit'], { relativeTo: this.route });

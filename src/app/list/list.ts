@@ -15,7 +15,7 @@ export class List implements OnInit {
   private router = inject(Router);
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
-  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   initialized = signal(false);
 
   ngOnInit () {
@@ -44,7 +44,7 @@ export class List implements OnInit {
 
     result.subscribe((data) => {
       this.articles = data;
-      this.changeDetectorRef.markForCheck();
+      this.changeDetector.markForCheck();
       this.initialized.set(true);
     });
 
