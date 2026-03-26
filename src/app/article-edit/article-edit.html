@@ -1,0 +1,21 @@
+<form [formGroup]="articleForm" (ngSubmit)="saveArticle()">
+  <div class="article-form">
+    <input id="article-title" type="text" formControlName="title" placeholder="Придумайте заголовок">
+    <div #articleText id='article-text' contenteditable="true" formControlName="text"
+         data-placeholder="Напишите текст статьи" [class.empty]="isTextEmpty()"></div>
+  </div>
+  <app-toolbar>
+    <a routerLink="/">К списку статей</a>
+    <div class="buttons">
+      @if (!isCreationMode()) {
+        <app-button
+          title="&#128465;"
+          theme="light"
+          hint="Удалить"
+          type="button"
+          (clickAction)="deleteArticle()"/>
+      }
+      <app-button title="Сохранить"/>
+    </div>
+  </app-toolbar>
+</form>

@@ -1,0 +1,38 @@
+.article-form {
+  input, [contenteditable] {
+    width: calc(100% - var(--form-padding-h) * 2);
+    border: 0;
+    box-shadow: var(--shadow);
+    padding: var(--form-padding-v) var(--form-padding-h);
+    margin-bottom: var(--form-margin);
+    font-size: var(--form-font-size);
+    font-family: var(--font-family);
+    border-radius: 1px;
+
+    &:focus {
+      box-shadow: var(--shadow-focus);
+    }
+
+    .ng-submitted &.ng-invalid {
+      outline: 1px solid #FA2E2E7F;
+    }
+  }
+
+  input {
+    height: var(--form-height);
+  }
+
+  [contenteditable] {
+    min-height: calc(100dvh - var(--main-gap) * 4 - var(--form-height) - var(--form-padding-v) * 4 - var(--form-margin) * 2 - var(--toolbar-height) - var(--block-padding-v) * 2);
+    position: relative;
+
+    &.empty:after {
+      content: attr(data-placeholder);
+      opacity: .5;
+      pointer-events: none;
+      position: absolute;
+      top: var(--form-padding-v);
+      left: var(--form-padding-h);
+    }
+  }
+}
