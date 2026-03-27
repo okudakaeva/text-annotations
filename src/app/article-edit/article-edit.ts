@@ -17,7 +17,8 @@ import {
   PreloaderService,
   AnnotationButtonService,
   AnnotationButton,
-  TooltipContainerDirective
+  TooltipContainerDirective,
+  ArticleDeleteButton
 } from '../../components';
 import { AnnotationsRenderer, ArticleService, IAnnotationList, IArticle } from '../../services';
 import { finalize } from 'rxjs';
@@ -29,7 +30,8 @@ import { finalize } from 'rxjs';
     ContentEditableDirective,
     Button, Toolbar,
     SelectionTracker, AnnotationButton,
-    TooltipContainerDirective
+    TooltipContainerDirective,
+    ArticleDeleteButton
   ],
   templateUrl: './article-edit.html',
   styleUrl: './article-edit.scss',
@@ -43,6 +45,7 @@ import { finalize } from 'rxjs';
 })
 export class ArticleEdit implements OnChanges {
   article = input<IArticle>();
+  tempId = input<IArticle['id'] | null>(null);
   annotations = input.required<IAnnotationList>();
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
@@ -74,8 +77,8 @@ export class ArticleEdit implements OnChanges {
     return text.length === 0;
   }
 
-  isCreationMode () {
-    return this.article()?.id === undefined || this.article()?.id === null;
+  isCreationMode (): boolean {
+    return !!this.tempId();
   }
 
   textRequiredValidator (): ValidationErrors | null {
@@ -90,28 +93,16 @@ export class ArticleEdit implements OnChanges {
         text: this.articleForm.get('text')?.value || '',
       };
       this.preloader.show();
-      const subscription = this.articleService.createOrUpdate(data).pipe(
-        finalize(() => this.preloader.hide()),
-      ).subscribe({
-        next: (data) => {
-          this.router.navigate(['/article', data.id], { relativeTo: this.route });
-        },
-        complete: () => subscription.unsubscribe(),
-      });
-    }
-  }
-
-  deleteArticle (): void {
-    if (!this.isCreationMode() && confirm('Подтверждаете удаление статьи?')) {
-      this.preloader.show();
-      const subscription = this.articleService.deleteArticle(this.article()!.id).pipe(
-        finalize(() => this.preloader.hide()),
-      ).subscribe({
-        next: () => {
-          this.router.navigate(['/']);
-        },
-        complete: () => subscription.unsubscribe(),
-      });
+      const subscription = this.articleService
+        .createOrUpdate(data, this.tempId())
+        .pipe(
+          finalize(() => this.preloader.hide()),
+        ).subscribe({
+          next: (data) => {
+            this.router.navigate(['/article', data.id], { relativeTo: this.route });
+          },
+          complete: () => subscription.unsubscribe(),
+        });
     }
   }
 

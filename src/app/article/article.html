@@ -3,19 +3,13 @@
   <div [innerHTML]="article().text | safeHtmlWithAnnotations"></div>
 </div>
 <app-toolbar>
-  <a routerLink="/">К списку статей</a>
+  <div class="links">
+    <a routerLink="/">К списку статей</a>
+    <a routerLink="/article/new">Создать статью</a>
+  </div>
+
   <div class="actions">
-    <app-button
-      title="&#128465;"
-      type="button"
-      hint="Удалить"
-      theme="light"
-      (clickAction)="deleteArticle()"/>
-    <app-button
-      title="&#9999;"
-      type="button"
-      hint="Редактировать"
-      theme="light"
-      (clickAction)="goToEdit()"/>
+    <app-article-delete-button [article]="article()" />
+    <app-article-edit-button [article]="article()" />
   </div>
 </app-toolbar>

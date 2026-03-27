@@ -29,6 +29,7 @@ export class DialogService {
         inputBinding('dynamicContent', () => component),
         inputBinding('bindings', () => bindings),
         outputBinding('closed', () => {
+          this.unlockScroll();
           this.destroyDialog();
         }),
       ],
@@ -37,6 +38,7 @@ export class DialogService {
 
     this.appRef.attachView(this.dialogRef.hostView);
     document.body.appendChild(this.hostRef);
+    this.lockScroll();
 
     return this.dialogRef;
   }
@@ -49,5 +51,23 @@ export class DialogService {
     }
     this.dialogRef = null;
     this.hostRef = null;
+  }
+
+  private scrollPosition = 0;
+
+  private lockScroll(): void {
+    this.scrollPosition = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${this.scrollPosition}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+  }
+
+  private unlockScroll(): void {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    window.scrollTo(0, this.scrollPosition);
   }
 }

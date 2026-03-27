@@ -34,20 +34,15 @@ export class TooltipService {
             this.getTooltipSize(annotation.text).then(size => {
               const position = this.calculatePosition(annotationRect, size);
 
-              console.log(annotationRect, size, position)
-
               this.tooltipState$.next({
                 text: annotation.text,
                 position,
                 isVisible: true,
                 showCloseButton: true,
-                size // передаём реальные размеры
+                size
               });
             });
           }
-        },
-        error: (error) => {
-          console.error('Ошибка при получении аннотации:', error);
         },
         complete: () => subscription.unsubscribe(),
       });

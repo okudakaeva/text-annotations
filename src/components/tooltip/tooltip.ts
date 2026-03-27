@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { TooltipService, TooltipState } from './tooltip.service';
 import { Subscription } from 'rxjs';
 
@@ -21,6 +21,7 @@ import { Subscription } from 'rxjs';
     </div>
   `,
   styleUrl: './tooltip.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Tooltip implements OnInit, OnDestroy {
   private tooltipService = inject(TooltipService);

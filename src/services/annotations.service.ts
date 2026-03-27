@@ -20,13 +20,16 @@ export type IAnnotationList = Map<IAnnotation['id'], IAnnotation>;
 export class AnnotationsService {
 
   getListByArticleId (id: IArticle['id']): Observable<IAnnotationList> {
-    const list: IAnnotationList = new Map;
+    const list: IAnnotationList = new Map();
     for (let i = 0; i < CommonStorage.length; i++) {
       const key = CommonStorage.key(i);
 
-      if (key?.indexOf(`${keyPrefix}${id}`) === 0) {
+      if (key?.indexOf(`${keyPrefix}`) === 0) {
         const annotation = JSON.parse(CommonStorage.getItem(key)!);
-        list.set(annotation.id, annotation);
+
+        if (annotation.articleId === id || key?.indexOf(`${keyPrefix}${id}`) === 0) { // backward compatibility
+          list.set(annotation.id, annotation);
+        }
       }
     }
 
@@ -39,8 +42,8 @@ export class AnnotationsService {
 
     return this.wrappedResponse(response);
   }
-  createOrUpdate (annotation: IAnnotation): Observable<IAnnotation> {
-    CommonStorage.setItem(`${ keyPrefix }${ annotation.id }`, JSON.stringify(annotation));
+  createOrUpdate (annotation: IAnnotation, articleId: IArticle['id']): Observable<IAnnotation> {
+    CommonStorage.setItem(`${ keyPrefix }${ annotation.id }`, JSON.stringify({...annotation, articleId: articleId }));
 
     return this.wrappedResponse({ body: annotation }) as Observable<IAnnotation>;
   }

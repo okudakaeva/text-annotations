@@ -38,8 +38,8 @@ export class ArticleService {
     return this.wrappedResponse(response);
   }
 
-  createOrUpdate (article: Partial<IArticle>): Observable<IArticle> {
-    article.id = article.id ?? this.generateId();
+  createOrUpdate (article: Partial<IArticle>, tempId: IArticle['id'] | null = null): Observable<IArticle> {
+    article.id = article.id ?? tempId ?? this.generateId();
     article.timestamp = article.timestamp ?? Date.now();
 
     CommonStorage.setItem(`${ keyPrefix }${ article.id }`, JSON.stringify(article));
@@ -70,7 +70,7 @@ export class ArticleService {
       );
   }
 
-  private generateId(): string {
+  generateId(): string {
     return Math.random().toString(36).substring(2, 9);
   }
 }

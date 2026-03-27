@@ -1,9 +1,10 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   inject,
   OnDestroy,
-  OnInit,
+  OnInit, signal,
   ViewChild
 } from '@angular/core';
 import { Button } from '../button/button';
@@ -28,15 +29,16 @@ import { AnnotationsService, IAnnotation } from '../../services';
       hint="Создать аннотацию"
       (click)="openAnnotationDialog()"
       title="💬"
-      [style.left.px]="position.x"
-      [style.top.px]="position.y"
-      [style.visibility]="position.visible ? 'visible':'hidden'"
+      [style.left.px]="position().x"
+      [style.top.px]="position().y"
+      [style.visibility]="position().visible ? 'visible' : 'hidden' "
       [style.position]="'fixed'"
     />
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnnotationButton implements OnInit, OnDestroy {
-  position: AnnotationButtonPosition = annotationButtonStartPosition;
+  position = signal<AnnotationButtonPosition>(annotationButtonStartPosition);
   private subscription: Subscription | null = null;
   private readonly positionService = inject(AnnotationButtonService);
   private readonly dialogService = inject(DialogService);
@@ -46,7 +48,7 @@ export class AnnotationButton implements OnInit, OnDestroy {
 
   ngOnInit (): void {
     this.subscription = this.positionService.getPositionUpdates().subscribe(pos => {
-      this.position = pos;
+      this.position.set(pos);
     });
   }
 
@@ -57,17 +59,14 @@ export class AnnotationButton implements OnInit, OnDestroy {
       return;
     }
 
-    const currentRange = this.position.range;
-    const selectedText = currentRange ? currentRange.toString().trim():'';
-
     this.dialogService.open(AnnotationDialog, {
       annotation: {
         id: annotationId,
         text: ''
       },
-      selectedText,
       onSaveAnnotation: (annotation: IAnnotation) => {
-        this.annotationService.createOrUpdate(annotation);
+        const articleId = this.route.snapshot.paramMap.get('id') ?? this.route.snapshot.data['tempId'];
+        this.annotationService.createOrUpdate(annotation, articleId);
         this.markAnnotation(annotation);
       },
       onCloseDialog: () => {
@@ -96,8 +95,7 @@ export class AnnotationButton implements OnInit, OnDestroy {
       return null;
     }
 
-    const articleId = this.route.snapshot.paramMap.get('id');
-    const annotationId = `${ articleId }-${ Date.now() }`;
+    const annotationId = Date.now().toString();
 
     const annotationEl = document.createElement('mark');
     annotationEl.setAttribute('data-annotation-id', annotationId);

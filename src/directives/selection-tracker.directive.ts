@@ -18,7 +18,6 @@ export class SelectionTracker implements OnDestroy {
   onSelectionEvent(event: MouseEvent | TouchEvent): void {
     const selection = window.getSelection();
     if (!selection || !selection.toString().trim()) {
-      // Отменяем действие браузера по умолчанию
       event.preventDefault();
       event.stopPropagation();
     }

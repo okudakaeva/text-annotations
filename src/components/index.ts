@@ -9,3 +9,6 @@ export * from './dialog/dialog.service';
 export * from './tooltip/tooltip';
 export * from './tooltip/tooltip.service';
 export * from './tooltip/tooltip-container.directive';
+export * from './article-delete-button/article-delete-button';
+export * from './article-delete-button/article-delete-dialog';
+export * from './article-edit-button/article-edit-button';
