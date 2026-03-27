@@ -81,31 +81,14 @@ h3 {
 mark {
   background-color: Highlight;
   color: HighlightText;
-  position: relative;
 
-  &[data-annotation-text]{
-    &::after{
-      content: attr(data-annotation-text);
-      position: absolute;
-      background: #000;
-      padding: var(--form-padding-v) var(--form-padding-h);
-      color: #fff;
-      border-radius: 5px;
-      z-index: 100;
-      white-space: nowrap;
-      top: calc(100% + var(--form-padding-v));
-      right: 0;
-      visibility: hidden;
-      opacity: 0;
-      transition: opacity .3s ease .15s;
-      font-size: 14px;
-    }
-
-    &:hover {
-      &::after{
-        visibility: visible;
-        opacity: 1;
-      }
+  span[data-has-tooltip] {
+    &::before {
+      content: ' ⓘ';
+      cursor: pointer;
+      text-shadow: 0 0 1px #fff;
+      font-weight: bold;
+      color: blue;
     }
   }
 }

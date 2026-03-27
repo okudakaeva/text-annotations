@@ -1,5 +1,7 @@
-<h1>{{  article().title }}</h1>
-<div [innerHTML]="article().text | safeHtmlWithAnnotations"></div>
+<div appTooltipContainer>
+  <h1>{{  article().title }}</h1>
+  <div [innerHTML]="article().text | safeHtmlWithAnnotations"></div>
+</div>
 <app-toolbar>
   <a routerLink="/">К списку статей</a>
   <div class="actions">

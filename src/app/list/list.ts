@@ -8,7 +8,6 @@ import { finalize, mergeMap } from 'rxjs';
   selector: 'app-list',
   imports: [RouterLink, Toolbar, Button],
   templateUrl: './list.html',
-  styleUrl: './list.scss',
 })
 export class List implements OnInit {
   articles: IArticle[] = [];
@@ -25,10 +24,12 @@ export class List implements OnInit {
   deleteArticle (article: IArticle) {
     if (confirm(`Подтверждаете удаление статьи "${ article.title }"?`)) {
       this.preloader.show();
-      this.articleService.deleteArticle(article.id).pipe(
+      const subscription = this.articleService.deleteArticle(article.id).pipe(
         mergeMap(() => this.loadArticles()),
         finalize(() => this.preloader.hide()),
-      ).subscribe();
+      ).subscribe({
+        complete: () => subscription.unsubscribe(),
+      });
     }
   }
 
@@ -42,10 +43,13 @@ export class List implements OnInit {
       finalize(() => this.preloader.hide()),
     )
 
-    result.subscribe((data) => {
-      this.articles = data;
-      this.changeDetector.markForCheck();
-      this.initialized.set(true);
+    const subscription = result.subscribe({
+      next: (data) => {
+        this.articles = data;
+        this.changeDetector.markForCheck();
+        this.initialized.set(true);
+      },
+      complete: () => subscription.unsubscribe(),
     });
 
     return result;

@@ -11,7 +11,14 @@ import {
   ContentEditableDirective,
   SelectionTracker
 } from '../../directives';
-import { Button, Toolbar, PreloaderService, AnnotationButtonService, AnnotationButton } from '../../components';
+import {
+  Button,
+  Toolbar,
+  PreloaderService,
+  AnnotationButtonService,
+  AnnotationButton,
+  TooltipContainerDirective
+} from '../../components';
 import { AnnotationsRenderer, ArticleService, IAnnotationList, IArticle } from '../../services';
 import { finalize } from 'rxjs';
 
@@ -21,7 +28,8 @@ import { finalize } from 'rxjs';
     RouterLink, ReactiveFormsModule,
     ContentEditableDirective,
     Button, Toolbar,
-    SelectionTracker, AnnotationButton
+    SelectionTracker, AnnotationButton,
+    TooltipContainerDirective
   ],
   templateUrl: './article-edit.html',
   styleUrl: './article-edit.scss',
@@ -82,10 +90,13 @@ export class ArticleEdit implements OnChanges {
         text: this.articleForm.get('text')?.value || '',
       };
       this.preloader.show();
-      this.articleService.createOrUpdate(data).pipe(
+      const subscription = this.articleService.createOrUpdate(data).pipe(
         finalize(() => this.preloader.hide()),
-      ).subscribe((data) => {
-        this.router.navigate(['/article', data.id], { relativeTo: this.route });
+      ).subscribe({
+        next: (data) => {
+          this.router.navigate(['/article', data.id], { relativeTo: this.route });
+        },
+        complete: () => subscription.unsubscribe(),
       });
     }
   }
@@ -93,10 +104,13 @@ export class ArticleEdit implements OnChanges {
   deleteArticle (): void {
     if (!this.isCreationMode() && confirm('Подтверждаете удаление статьи?')) {
       this.preloader.show();
-      this.articleService.deleteArticle(this.article()!.id).pipe(
+      const subscription = this.articleService.deleteArticle(this.article()!.id).pipe(
         finalize(() => this.preloader.hide()),
-      ).subscribe(() => {
-        this.router.navigate(['/']);
+      ).subscribe({
+        next: () => {
+          this.router.navigate(['/']);
+        },
+        complete: () => subscription.unsubscribe(),
       });
     }
   }

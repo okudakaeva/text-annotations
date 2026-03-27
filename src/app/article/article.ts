@@ -1,15 +1,14 @@
 import { Component, inject, input, OnChanges, SimpleChanges } from '@angular/core';
 import { AnnotationsRenderer, ArticleService, IAnnotationList, IArticle } from '../../services';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Button, PreloaderService, Toolbar } from '../../components';
+import { Button, PreloaderService, Toolbar, TooltipContainerDirective } from '../../components';
 import { finalize } from 'rxjs';
 import { SafeHtmlWithAnnotationsPipe } from '../../directives';
 
 @Component({
   selector: 'app-article',
-  imports: [RouterLink, Toolbar, Button, SafeHtmlWithAnnotationsPipe],
+  imports: [RouterLink, Toolbar, Button, SafeHtmlWithAnnotationsPipe, TooltipContainerDirective],
   templateUrl: './article.html',
-  styleUrl: './article.scss',
 })
 export class Article implements OnChanges {
   article = input.required<IArticle>();
@@ -33,11 +32,15 @@ export class Article implements OnChanges {
   deleteArticle (): void {
     if (confirm('Подтверждаете удаление статьи?')) {
       this.preloader.show();
-      this.articleService.deleteArticle(this.article()!.id).pipe(
-        finalize(() => this.preloader.hide()),
-      ).subscribe(() => {
-        this.router.navigate(['/']);
-      });
+      const subscription = this.articleService.deleteArticle(this.article()!.id)
+        .pipe(
+          finalize(() => this.preloader.hide()),
+        ).subscribe({
+          next: () => {
+            this.router.navigate(['/']);
+          },
+          complete: () => subscription.unsubscribe(),
+        });
     }
   }
 }

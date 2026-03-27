@@ -1,0 +1,196 @@
+import { AfterViewInit, Directive, ElementRef, inject, OnDestroy } from '@angular/core';
+import { TooltipService } from './tooltip.service';
+
+@Directive({
+  selector: '[appTooltipContainer]'
+})
+export class TooltipContainerDirective implements AfterViewInit, OnDestroy {
+  private el = inject(ElementRef<HTMLElement>);
+  private tooltipService = inject(TooltipService);
+  private triggerHandlers = new WeakMap<HTMLElement | Document | Window, (event: any) => void>();
+  private triggerElements = new WeakMap<HTMLElement, HTMLElement>();
+  private mutationObserver: MutationObserver | null = null;
+
+  ngAfterViewInit (): void {
+    this.setupAnnotationTriggers();
+    this.setupGlobalEventListeners();
+    this.setupDomObserver();
+  }
+
+  ngOnDestroy (): void {
+    this.cleanupGlobalEventListeners();
+    this.cleanupTriggers();
+
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+    }
+  }
+
+  private setupDomObserver (): void {
+    this.mutationObserver = new MutationObserver((mutations) => {
+      let needsReinit = false;
+
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList') {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as HTMLElement;
+              if (element.querySelector('mark[data-annotation-id]')) {
+                needsReinit = true;
+              }
+              if (element.matches('mark[data-annotation-id]')) {
+                needsReinit = true;
+              }
+            }
+          }
+        }
+      }
+
+      if (needsReinit) {
+        setTimeout(() => this.reinitializeMarks(), 0);
+      }
+    });
+
+    this.mutationObserver.observe(this.el.nativeElement, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  private reinitializeMarks (): void {
+    this.cleanupTriggers();
+    this.setupAnnotationTriggers();
+  }
+
+  private setupAnnotationTriggers (): void {
+    const marks = this.el.nativeElement.querySelectorAll('mark[data-annotation-id]:not([data-no-tooltip])');
+
+    marks.forEach((mark: HTMLElement) => {
+      // Пропускаем уже инициализированные mark
+      if (this.triggerElements.has(mark)) {
+        return;
+      }
+
+      const triggerEl = document.createElement('span');
+      triggerEl.setAttribute('data-has-tooltip', 'true');
+      triggerEl.setAttribute('title', 'Аннотация');
+
+      const clickHandler = () => {
+        const annotationId = mark.getAttribute('data-annotation-id');
+        if (annotationId) {
+          this.tooltipService.showTooltip(
+            annotationId,
+            mark,
+            mark.getBoundingClientRect()
+          );
+        }
+      };
+
+      this.triggerHandlers.set(triggerEl, clickHandler);
+      this.triggerElements.set(mark, triggerEl);
+
+      triggerEl.addEventListener('click', clickHandler);
+      mark.appendChild(triggerEl);
+    });
+  }
+
+  private setupGlobalEventListeners (): void {
+    // Слушатель скролла
+    const scrollHandler = () => this.tooltipService.hide();
+    document.addEventListener('scroll', scrollHandler, true);
+    window.addEventListener('scroll', scrollHandler, true);
+    this.triggerHandlers.set(document, scrollHandler);
+
+    // Слушатель клика
+    const clickHandler = (event: MouseEvent) => {
+      if (!this.isClickInsideTooltipOrTrigger(event)) {
+        this.tooltipService.hide();
+      }
+    };
+    document.addEventListener('click', clickHandler, true);
+    this.triggerHandlers.set(document, clickHandler);
+
+    // Слушатели выделения текста
+    const selectionHandler = () => {
+      setTimeout(() => {
+        const selection = window.getSelection();
+        if (selection && selection.toString().length > 0) {
+          this.tooltipService.hide();
+        }
+      }, 0);
+    };
+    document.addEventListener('mouseup', selectionHandler, true);
+    document.addEventListener('keyup', selectionHandler, true);
+    this.triggerHandlers.set(document, selectionHandler);
+  }
+
+  /**
+   * Проверяет, был ли клик внутри тултипа или его триггер‑элемента
+   */
+  private isClickInsideTooltipOrTrigger (event: MouseEvent): boolean {
+    const target = event.target as HTMLElement;
+    const annotationContainer = this.el.nativeElement;
+
+    // Если клик вне контейнера — точно не внутри
+    if (!annotationContainer.contains(target)) {
+      return false;
+    }
+
+    // Ищем ближайший mark с аннотацией
+    const closestMark = target.closest('mark[data-annotation-id]');
+    if (closestMark && annotationContainer.contains(closestMark)) {
+      return true;
+    }
+
+    // Проверяем, не кликнули ли по триггеру
+    const trigger = target.closest('.annotation-trigger');
+
+    return !!(trigger && annotationContainer.contains(trigger));
+  }
+
+  private cleanupGlobalEventListeners (): void {
+    // Удаляем слушатель скролла
+    const scrollHandler = this.triggerHandlers.get(document);
+    if (scrollHandler) {
+      document.removeEventListener('scroll', scrollHandler, true);
+      window.removeEventListener('scroll', scrollHandler, true);
+      this.triggerHandlers.delete(document);
+    }
+
+    // Удаляем слушатель клика
+    const clickHandler = this.triggerHandlers.get(document);
+    if (clickHandler) {
+      document.removeEventListener('click', clickHandler, true);
+      this.triggerHandlers.delete(document);
+    }
+
+    // Удаляем слушатели выделения текста
+    const selectionHandler = this.triggerHandlers.get(document);
+    if (selectionHandler) {
+      document.removeEventListener('mouseup', selectionHandler, true);
+      document.removeEventListener('keyup', selectionHandler, true);
+      this.triggerHandlers.delete(document);
+    }
+  }
+
+  private cleanupTriggers (): void {
+    const marks = this.el.nativeElement.querySelectorAll('mark[data-annotation-id]');
+
+    marks.forEach((mark: HTMLElement) => {
+      const triggerEl = this.triggerElements.get(mark);
+      if (triggerEl) {
+        const handler = this.triggerHandlers.get(triggerEl);
+        if (handler) {
+          triggerEl.removeEventListener('click', handler);
+          this.triggerHandlers.delete(triggerEl);
+        }
+        triggerEl.remove();
+      }
+      this.triggerElements.delete(mark);
+    });
+
+    // Очищаем WeakMap, но не перезаписываем их
+    this.triggerHandlers = new WeakMap();
+    this.triggerElements = new WeakMap();
+  }
+}

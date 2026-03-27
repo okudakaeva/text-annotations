@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { NavigationEnd, NavigationStart, Router, RouterOutlet } from '@angular/router';
-import { Preloader, PreloaderService } from '../components';
+import { Preloader, PreloaderService, Tooltip } from '../components';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Preloader],
+  imports: [RouterOutlet, Preloader, Tooltip],
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
