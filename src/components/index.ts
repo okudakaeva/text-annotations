@@ -6,3 +6,6 @@ export * from './not-found/not-found';
 export * from './annotation-button/annotation-button';
 export * from './annotation-button/annotation-button.service';
 export * from './dialog/dialog.service';
+export * from './tooltip/tooltip';
+export * from './tooltip/tooltip.service';
+export * from './tooltip/tooltip-container.directive';

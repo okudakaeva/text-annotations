@@ -1,0 +1,29 @@
+.tooltip {
+  position: fixed;
+  background: #000;
+  padding: var(--form-padding-v) var(--form-padding-h);
+  color: #fff;
+  border-radius: 5px;
+  z-index: 100;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity .3s ease .2s;
+  font-size: 14px;
+  max-width: 500px;
+
+  &.visible {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  button {
+    background: transparent;
+    color: #fff;
+    padding: 0;
+    position: absolute;
+    border: 0;
+    right: 3px;
+    top: 0;
+    cursor: pointer;
+  }
+}

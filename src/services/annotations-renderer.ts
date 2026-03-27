@@ -4,7 +4,7 @@ import { IAnnotationList } from './annotations.service';
 @Injectable({ providedIn: 'root' })
 export class AnnotationsRenderer implements OnDestroy {
   private annotations!: IAnnotationList;
-  private mutationObserver: MutationObserver | null = null;
+  private observer: MutationObserver | null = null;
 
   initData(annotations: IAnnotationList) {
     this.annotations = annotations;
@@ -25,12 +25,11 @@ export class AnnotationsRenderer implements OnDestroy {
       if (!annotation) return;
 
       mark.setAttribute('style', `background: ${annotation.color}`);
-      mark.setAttribute('data-annotation-text', annotation.text);
     });
   }
 
   private setupGlobalObserver(): void {
-    this.mutationObserver = new MutationObserver((mutations) => {
+    this.observer = new MutationObserver((mutations) => {
       let shouldUpdate = false;
       for (const mutation of mutations) {
         if (mutation.type === 'childList') {
@@ -53,7 +52,7 @@ export class AnnotationsRenderer implements OnDestroy {
     });
 
 
-    this.mutationObserver.observe(document.body, {
+    this.observer.observe(document.body, {
       childList: true,
       subtree: true,
       attributes: false,
@@ -62,8 +61,8 @@ export class AnnotationsRenderer implements OnDestroy {
   }
 
   private disconnect() {
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
+    if (this.observer) {
+      this.observer.disconnect();
     }
   }
 

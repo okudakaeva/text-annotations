@@ -73,7 +73,7 @@ export class AnnotationButton implements OnInit, OnDestroy {
       onCloseDialog: () => {
         this.removeAnnotationMark(annotationId);
       }
-    })
+    });
   }
 
   ngOnDestroy (): void {
@@ -90,7 +90,7 @@ export class AnnotationButton implements OnInit, OnDestroy {
     }
 
     const range = selection.getRangeAt(0);
-    const selectedText = selection.toString().trim();
+    const selectedText = selection.toString();
 
     if (!selectedText) {
       return null;
@@ -101,6 +101,7 @@ export class AnnotationButton implements OnInit, OnDestroy {
 
     const annotationEl = document.createElement('mark');
     annotationEl.setAttribute('data-annotation-id', annotationId);
+    annotationEl.setAttribute('data-no-tooltip', 'true');
     annotationEl.textContent = selectedText;
 
     range.deleteContents();
@@ -123,7 +124,8 @@ export class AnnotationButton implements OnInit, OnDestroy {
 
     if (annotationEl) {
       annotationEl.setAttribute('style', ` background: ${annotation.color || ''}` );
-      annotationEl.setAttribute('data-annotation-text', annotation.text || '');
+      annotationEl.removeAttribute('data-no-tooltip');
+      annotationEl.parentNode?.replaceChild(annotationEl, annotationEl); // trigger mutation
     }
   }
 }

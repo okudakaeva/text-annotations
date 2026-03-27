@@ -24,7 +24,7 @@ export class DialogContent implements AfterViewInit, OnDestroy {
   bindings = input<{ [key: string]: any }>();
   private readonly viewContainer = inject(ViewContainerRef);
   private readonly injector = inject(Injector);
-  private readonly dialogContent = viewChild<ElementRef>('dialogContent');
+  private readonly dialogContent = viewChild<ElementRef<HTMLElement>>('dialogContent');
   compRef: ComponentRef<Type<any>> | null = null;
   okEvent = output<void>();
   cancelEvent = output<void>();

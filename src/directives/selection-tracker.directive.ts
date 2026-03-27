@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener, OnDestroy, output } from '@angular/core';
+import { Directive, ElementRef, HostListener, inject, OnDestroy, output } from '@angular/core';
 
 @Directive({
   selector: '[appSelectionTracker]'
@@ -6,15 +6,22 @@ import { Directive, ElementRef, HostListener, OnDestroy, output } from '@angular
 export class SelectionTracker implements OnDestroy {
   selectionDetected = output<Range | null>();
   private scrollListeners: Map<HTMLElement, () => void> = new Map();
+  private el = inject(ElementRef<HTMLElement>);
 
-  constructor(private el: ElementRef<HTMLElement>) {
+  constructor() {
     this.setupScrollListeners();
     this.setupSelectionChangeHandler();
   }
 
-  @HostListener('mouseup')
-  @HostListener('touchend')
-  onSelectionEvent(): void {
+  @HostListener('mouseup', ['$event'])
+  @HostListener('touchend', ['$event'])
+  onSelectionEvent(event: MouseEvent | TouchEvent): void {
+    const selection = window.getSelection();
+    if (!selection || !selection.toString().trim()) {
+      // Отменяем действие браузера по умолчанию
+      event.preventDefault();
+      event.stopPropagation();
+    }
     this.emitCurrentSelection();
   }
 
