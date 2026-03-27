@@ -1,17 +1,20 @@
 import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
 import { ArticleService, IArticle } from '../../services';
-import { Router, RouterLink } from '@angular/router';
-import { Button, PreloaderService, Toolbar } from '../../components';
-import { finalize, mergeMap } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { PreloaderService, Toolbar, ArticleDeleteButton, ArticleEditButton } from '../../components';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-list',
-  imports: [RouterLink, Toolbar, Button],
+  imports: [
+    RouterLink, Toolbar,
+    ArticleDeleteButton,
+    ArticleEditButton,
+  ],
   templateUrl: './list.html',
 })
 export class List implements OnInit {
   articles: IArticle[] = [];
-  private router = inject(Router);
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
   private readonly changeDetector = inject(ChangeDetectorRef);
@@ -19,22 +22,6 @@ export class List implements OnInit {
 
   ngOnInit () {
     this.loadArticles();
-  }
-
-  deleteArticle (article: IArticle) {
-    if (confirm(`Подтверждаете удаление статьи "${ article.title }"?`)) {
-      this.preloader.show();
-      const subscription = this.articleService.deleteArticle(article.id).pipe(
-        mergeMap(() => this.loadArticles()),
-        finalize(() => this.preloader.hide()),
-      ).subscribe({
-        complete: () => subscription.unsubscribe(),
-      });
-    }
-  }
-
-  goToEdit (id: IArticle['id']) {
-    this.router.navigate(['article', id, 'edit']);
   }
 
   loadArticles () {

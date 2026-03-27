@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ComponentRef,
   ElementRef,
@@ -17,7 +18,8 @@ import {
   styleUrl: './dialog.scss',
   template: `
     <div #dialogContent></div>
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DialogContent implements AfterViewInit, OnDestroy {
   dynamicContent = input.required<Type<any>>();

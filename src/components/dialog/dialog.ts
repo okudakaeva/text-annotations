@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   input,
   output,
@@ -24,6 +25,7 @@ import { DialogContent } from './dialog-content';
     </div>
   `,
   styleUrl: './dialog.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dialog {
   dynamicContent = input.required<Type<any>>();

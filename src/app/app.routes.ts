@@ -5,6 +5,7 @@ import { articleResolver } from './article-edit/article.resolver';
 import { NotFound } from '../components';
 import { Article } from './article/article';
 import { annotationsResolver } from './article-edit/annotations.resolver';
+import { articleTempIdResolver } from './article-edit/article-tempid.resolver';
 
 export const routes: Routes = [
   {
@@ -15,6 +16,9 @@ export const routes: Routes = [
   {
     path: 'article/new',
     component: ArticleEdit,
+    resolve: {
+      tempId: articleTempIdResolver,
+    }
   },
   {
     path: 'article/:id',

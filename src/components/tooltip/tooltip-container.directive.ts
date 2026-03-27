@@ -66,7 +66,6 @@ export class TooltipContainerDirective implements AfterViewInit, OnDestroy {
     const marks = this.el.nativeElement.querySelectorAll('mark[data-annotation-id]:not([data-no-tooltip])');
 
     marks.forEach((mark: HTMLElement) => {
-      // Пропускаем уже инициализированные mark
       if (this.triggerElements.has(mark)) {
         return;
       }
@@ -95,13 +94,11 @@ export class TooltipContainerDirective implements AfterViewInit, OnDestroy {
   }
 
   private setupGlobalEventListeners (): void {
-    // Слушатель скролла
     const scrollHandler = () => this.tooltipService.hide();
     document.addEventListener('scroll', scrollHandler, true);
     window.addEventListener('scroll', scrollHandler, true);
     this.triggerHandlers.set(document, scrollHandler);
 
-    // Слушатель клика
     const clickHandler = (event: MouseEvent) => {
       if (!this.isClickInsideTooltipOrTrigger(event)) {
         this.tooltipService.hide();
@@ -110,7 +107,6 @@ export class TooltipContainerDirective implements AfterViewInit, OnDestroy {
     document.addEventListener('click', clickHandler, true);
     this.triggerHandlers.set(document, clickHandler);
 
-    // Слушатели выделения текста
     const selectionHandler = () => {
       setTimeout(() => {
         const selection = window.getSelection();
@@ -131,25 +127,21 @@ export class TooltipContainerDirective implements AfterViewInit, OnDestroy {
     const target = event.target as HTMLElement;
     const annotationContainer = this.el.nativeElement;
 
-    // Если клик вне контейнера — точно не внутри
     if (!annotationContainer.contains(target)) {
       return false;
     }
 
-    // Ищем ближайший mark с аннотацией
     const closestMark = target.closest('mark[data-annotation-id]');
     if (closestMark && annotationContainer.contains(closestMark)) {
       return true;
     }
 
-    // Проверяем, не кликнули ли по триггеру
     const trigger = target.closest('.annotation-trigger');
 
     return !!(trigger && annotationContainer.contains(trigger));
   }
 
   private cleanupGlobalEventListeners (): void {
-    // Удаляем слушатель скролла
     const scrollHandler = this.triggerHandlers.get(document);
     if (scrollHandler) {
       document.removeEventListener('scroll', scrollHandler, true);
@@ -157,14 +149,12 @@ export class TooltipContainerDirective implements AfterViewInit, OnDestroy {
       this.triggerHandlers.delete(document);
     }
 
-    // Удаляем слушатель клика
     const clickHandler = this.triggerHandlers.get(document);
     if (clickHandler) {
       document.removeEventListener('click', clickHandler, true);
       this.triggerHandlers.delete(document);
     }
 
-    // Удаляем слушатели выделения текста
     const selectionHandler = this.triggerHandlers.get(document);
     if (selectionHandler) {
       document.removeEventListener('mouseup', selectionHandler, true);
@@ -189,7 +179,6 @@ export class TooltipContainerDirective implements AfterViewInit, OnDestroy {
       this.triggerElements.delete(mark);
     });
 
-    // Очищаем WeakMap, но не перезаписываем их
     this.triggerHandlers = new WeakMap();
     this.triggerElements = new WeakMap();
   }

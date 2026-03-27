@@ -6,18 +6,11 @@
       <app-toolbar>
         <h2><a routerLink="/article/{{article.id}}">{{ article.title }}</a></h2>
         <div class="actions">
-          <app-button
-            title="&#128465;"
-            type="button"
-            hint="Удалить"
-            theme="light"
-            (clickAction)="deleteArticle(article)"/>
-          <app-button
-            title="&#9999;"
-            type="button"
-            hint="Редактировать"
-            theme="light"
-            (clickAction)="goToEdit(article.id)"/>
+          <app-article-delete-button
+            [article]="article"
+            [refreshData]="loadArticles.bind(this)"
+          />
+          <app-article-edit-button [article]="article" />
         </div>
       </app-toolbar>
       </article>

@@ -1,4 +1,4 @@
-import { Component, input, OnChanges, output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, OnChanges, output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Toolbar } from '../toolbar/toolbar';
 import { Button } from '../button/button';
@@ -35,10 +35,10 @@ const defaultColor = '#ffffe0';
   </form>
   `,
   styleUrl: './annotation-dialog.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnnotationDialog implements OnChanges {
   annotation = input.required<IAnnotation>();
-  selectedText = input<string>('');
   onSaveAnnotation = input.required<(a: IAnnotation) => void>();
   onCloseDialog = input<() => void>(() => {});
   okEvent = output<void>();
