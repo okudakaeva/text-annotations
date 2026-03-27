@@ -7,14 +7,22 @@ import {
   ReactiveFormsModule, ValidationErrors,
   Validators
 } from '@angular/forms';
-import { ContentEditableDirective } from '../../directives';
-import { Button, Toolbar, PreloaderService } from '../../components';
-import { ArticleService, IArticle } from '../../services';
+import {
+  ContentEditableDirective,
+  SelectionTracker
+} from '../../directives';
+import { Button, Toolbar, PreloaderService, AnnotationButtonService, AnnotationButton } from '../../components';
+import { AnnotationsRenderer, ArticleService, IAnnotationList, IArticle } from '../../services';
 import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-article',
-  imports: [RouterLink, ReactiveFormsModule, ContentEditableDirective, Button, Toolbar],
+  imports: [
+    RouterLink, ReactiveFormsModule,
+    ContentEditableDirective,
+    Button, Toolbar,
+    SelectionTracker, AnnotationButton
+  ],
   templateUrl: './article-edit.html',
   styleUrl: './article-edit.scss',
   providers: [
@@ -27,10 +35,13 @@ import { finalize } from 'rxjs';
 })
 export class ArticleEdit implements OnChanges {
   article = input<IArticle>();
+  annotations = input.required<IAnnotationList>();
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
+  private readonly annotationButtonService = inject(AnnotationButtonService);
   private readonly router = inject(Router);
-  private route = inject(ActivatedRoute);
+  private readonly route = inject(ActivatedRoute);
+  private readonly annotationsRenderer = inject(AnnotationsRenderer);
   articleTextEl = viewChild<ElementRef>('articleText');
   articleForm = new FormGroup({
     title: new FormControl('', [Validators.required, Validators.maxLength(100)]),
@@ -39,6 +50,8 @@ export class ArticleEdit implements OnChanges {
 
   ngOnChanges (changes: SimpleChanges): void {
     if (changes['article'] && this.article()) {
+      this.annotationsRenderer.initData(this.annotations());
+
       queueMicrotask(() => {
         this.articleForm.patchValue({
           title: this.article()!.title || '',
@@ -67,7 +80,7 @@ export class ArticleEdit implements OnChanges {
         ...this.article() || {},
         title: this.articleForm.get('title')?.value || '',
         text: this.articleForm.get('text')?.value || '',
-      }
+      };
       this.preloader.show();
       this.articleService.createOrUpdate(data).pipe(
         finalize(() => this.preloader.hide()),
@@ -86,5 +99,9 @@ export class ArticleEdit implements OnChanges {
         this.router.navigate(['/']);
       });
     }
+  }
+
+  onSelectionDetected (range: Range | null): void {
+    this.annotationButtonService.processSelection(range);
   }
 }

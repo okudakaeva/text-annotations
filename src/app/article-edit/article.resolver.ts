@@ -6,8 +6,8 @@ import { Observable } from 'rxjs';
 export const articleResolver: ResolveFn<IArticle | Observable<never>> = (
   route: ActivatedRouteSnapshot,
 ) => {
-  const articleService = inject(ArticleService);
-  const articleId = route.paramMap.get('id')!;
+  const service = inject(ArticleService);
+  const id = route.paramMap.get('id')!;
 
-  return articleService.getArticle(articleId);
+  return service.getArticle(id);
 };

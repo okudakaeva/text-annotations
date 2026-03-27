@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { PreloaderService } from './preloaderService';
+import { PreloaderService } from './preloader.service';
 
 @Component({
   selector: 'app-preloader',

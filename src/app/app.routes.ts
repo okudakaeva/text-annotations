@@ -1,9 +1,10 @@
 import { Routes } from '@angular/router';
 import { List } from './list/list';
 import { ArticleEdit } from './article-edit/article-edit';
-import { articleResolver } from './article-edit/articleResolver';
+import { articleResolver } from './article-edit/article.resolver';
 import { NotFound } from '../components';
 import { Article } from './article/article';
+import { annotationsResolver } from './article-edit/annotations.resolver';
 
 export const routes: Routes = [
   {
@@ -20,6 +21,7 @@ export const routes: Routes = [
     component: Article,
     resolve: {
       article: articleResolver,
+      annotations: annotationsResolver,
     }
   },
   {
@@ -27,6 +29,7 @@ export const routes: Routes = [
     component: ArticleEdit,
     resolve: {
       article: articleResolver,
+      annotations: annotationsResolver,
     }
   },
   {
