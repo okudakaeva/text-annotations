@@ -1,3 +1,10 @@
+// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
+// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
+// Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
+// **Уникальные решения:**
+// * Система аннотаций к тексту — собственная разработка.
+// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
+
 import {
   Directive,
   ElementRef,
@@ -14,11 +21,11 @@ import { sanitizerConfig } from './sanitizer.cfg';
   selector: '[contenteditable][formControlName], [contenteditable][formControl], [contenteditable][ngModel]',
   providers: [{
     provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => ContentEditableDirective),
+    useExisting: forwardRef(() => ReactiveContentEditable),
     multi: true
   }]
 })
-export class ContentEditableDirective implements ControlValueAccessor, OnInit, OnDestroy {
+export class ReactiveContentEditable implements ControlValueAccessor, OnInit, OnDestroy {
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
   private el = inject(ElementRef<HTMLElement>);

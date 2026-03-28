@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input, OnChanges, output, SimpleCha
 import { Toolbar } from '../toolbar/toolbar';
 import { Button } from '../button/button';
 import { IArticle } from '../../services';
+
 @Component({
   imports: [Toolbar, Button],
   template: `

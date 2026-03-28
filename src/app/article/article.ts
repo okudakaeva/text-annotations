@@ -1,7 +1,7 @@
 import { Component, inject, input, OnChanges, SimpleChanges } from '@angular/core';
 import { AnnotationsRenderer, IAnnotationList, IArticle } from '../../services';
 import { RouterLink } from '@angular/router';
-import { Toolbar, TooltipContainerDirective, ArticleDeleteButton, ArticleEditButton } from '../../components';
+import { Toolbar, TooltipContainer, ArticleDeleteButton, ArticleEditButton } from '../../components';
 import { SafeHtmlWithAnnotationsPipe } from '../../directives';
 
 @Component({
@@ -9,7 +9,7 @@ import { SafeHtmlWithAnnotationsPipe } from '../../directives';
   imports: [
     RouterLink, Toolbar,
     SafeHtmlWithAnnotationsPipe,
-    TooltipContainerDirective,
+    TooltipContainer,
     ArticleDeleteButton,
     ArticleEditButton,
   ],

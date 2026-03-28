@@ -8,7 +8,7 @@ import {
   Validators
 } from '@angular/forms';
 import {
-  ContentEditableDirective,
+  ReactiveContentEditable,
   SelectionTracker
 } from '../../directives';
 import {
@@ -17,7 +17,7 @@ import {
   PreloaderService,
   AnnotationButtonService,
   AnnotationButton,
-  TooltipContainerDirective,
+  TooltipContainer,
   ArticleDeleteButton
 } from '../../components';
 import { AnnotationsRenderer, ArticleService, IAnnotationList, IArticle } from '../../services';
@@ -27,10 +27,10 @@ import { finalize } from 'rxjs';
   selector: 'app-article',
   imports: [
     RouterLink, ReactiveFormsModule,
-    ContentEditableDirective,
+    ReactiveContentEditable,
     Button, Toolbar,
     SelectionTracker, AnnotationButton,
-    TooltipContainerDirective,
+    TooltipContainer,
     ArticleDeleteButton
   ],
   templateUrl: './article-edit.html',
