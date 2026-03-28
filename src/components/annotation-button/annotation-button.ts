@@ -19,6 +19,12 @@ import { AnnotationDialog } from '../annotation-dialog/annotation-dialog';
 import { ActivatedRoute } from '@angular/router';
 import { AnnotationsService, IAnnotation } from '../../services';
 
+// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
+// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
+// Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
+// **Уникальные решения:**
+// * Система аннотаций к тексту — собственная разработка.
+// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
 @Component({
   selector: 'app-annotation-button',
   imports: [Button],

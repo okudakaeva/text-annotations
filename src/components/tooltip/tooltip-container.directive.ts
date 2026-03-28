@@ -1,10 +1,17 @@
+// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
+// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
+// Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
+// **Уникальные решения:**
+// * Система аннотаций к тексту — собственная разработка.
+// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
+
 import { AfterViewInit, Directive, ElementRef, inject, OnDestroy } from '@angular/core';
 import { TooltipService } from './tooltip.service';
 
 @Directive({
   selector: '[appTooltipContainer]'
 })
-export class TooltipContainerDirective implements AfterViewInit, OnDestroy {
+export class TooltipContainer implements AfterViewInit, OnDestroy {
   private el = inject(ElementRef<HTMLElement>);
   private tooltipService = inject(TooltipService);
   private triggerHandlers = new WeakMap<HTMLElement | Document | Window, (event: any) => void>();

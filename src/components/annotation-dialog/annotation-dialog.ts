@@ -4,6 +4,13 @@ import { Toolbar } from '../toolbar/toolbar';
 import { Button } from '../button/button';
 import { IAnnotation } from '../../services';
 
+// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
+// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
+// Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
+// **Уникальные решения:**
+// * Система аннотаций к тексту — собственная разработка.
+// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
+
 const defaultColor = '#ffffe0';
 @Component({
   imports: [ReactiveFormsModule, Toolbar, Button],

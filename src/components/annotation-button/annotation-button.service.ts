@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
+// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
+// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
+// Использование, копирование и модификация без письменного согласия автора запрещены.
+// **Уникальные решения:**
+// * Система аннотаций к тексту — собственная разработка.
+// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
 export interface AnnotationButtonPosition {
   x: number;
   y: number;
