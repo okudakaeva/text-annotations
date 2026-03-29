@@ -74,6 +74,7 @@ export class AnnotationDialog implements OnChanges {
         color: this.annotationForm.get('color')?.value || defaultColor,
       };
       this.onSaveAnnotation()(annotation);
+      // todo: здесь сохранять в модель article исходный чистый текст и аннотированную разметку для дальнейшего показа
       this.okEvent.emit();
     }
   }

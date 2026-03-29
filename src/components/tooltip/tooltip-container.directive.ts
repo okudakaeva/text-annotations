@@ -8,15 +8,19 @@
 import { AfterViewInit, Directive, ElementRef, inject, OnDestroy } from '@angular/core';
 import { TooltipService } from './tooltip.service';
 
+const markSelector = 'mark[data-annotation-id]:not([data-no-tooltip])';
+const buttonSelector = 'span[data-has-tooltip]';
+
 @Directive({
   selector: '[appTooltipContainer]'
 })
 export class TooltipContainer implements AfterViewInit, OnDestroy {
   private el = inject(ElementRef<HTMLElement>);
   private tooltipService = inject(TooltipService);
-  private triggerHandlers = new WeakMap<HTMLElement | Document | Window, (event: any) => void>();
-  private triggerElements = new WeakMap<HTMLElement, HTMLElement>();
-  private mutationObserver: MutationObserver | null = null;
+  private triggerHandlers: WeakMap<HTMLElement | Document | Window, (event: any) => void> | null = new WeakMap<HTMLElement | Document | Window, (event: any) => void>();
+  private triggerElements: WeakMap<HTMLElement, HTMLElement> | null = new WeakMap<HTMLElement, HTMLElement>();
+  private observer: MutationObserver | null = null;
+  private abortCtrl = new AbortController();
 
   ngAfterViewInit (): void {
     this.setupAnnotationTriggers();
@@ -25,16 +29,19 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy (): void {
-    this.cleanupGlobalEventListeners();
+    this.abortCtrl.abort();
     this.cleanupTriggers();
+    this.disconnectObserver();
+    this.triggerHandlers = null;
+    this.triggerElements = null;
+  }
 
-    if (this.mutationObserver) {
-      this.mutationObserver.disconnect();
-    }
+  private getMarks(): HTMLElement[] {
+    return this.el.nativeElement.querySelectorAll(markSelector);
   }
 
   private setupDomObserver (): void {
-    this.mutationObserver = new MutationObserver((mutations) => {
+    this.observer = new MutationObserver((mutations) => {
       let needsReinit = false;
 
       for (const mutation of mutations) {
@@ -42,10 +49,16 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
           for (const node of mutation.addedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as HTMLElement;
-              if (element.querySelector('mark[data-annotation-id]')) {
+              if (element.matches(markSelector)) {
                 needsReinit = true;
               }
-              if (element.matches('mark[data-annotation-id]')) {
+            }
+          }
+
+          for (const node of mutation.removedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as HTMLElement;
+              if (element.matches(buttonSelector)) {
                 needsReinit = true;
               }
             }
@@ -58,10 +71,22 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
       }
     });
 
-    this.mutationObserver.observe(this.el.nativeElement, {
-      childList: true,
-      subtree: true
-    });
+    this.connectObserver();
+  }
+
+  private connectObserver () {
+    if (this.observer) {
+      this.observer.observe(this.el.nativeElement, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }
+
+  private disconnectObserver() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 
   private reinitializeMarks (): void {
@@ -70,10 +95,11 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
   }
 
   private setupAnnotationTriggers (): void {
-    const marks = this.el.nativeElement.querySelectorAll('mark[data-annotation-id]:not([data-no-tooltip])');
+    this.disconnectObserver();
+    const marks = this.getMarks();
 
     marks.forEach((mark: HTMLElement) => {
-      if (this.triggerElements.has(mark)) {
+      if (this.triggerElements!.has(mark) || mark.querySelector(buttonSelector)) {
         return;
       }
 
@@ -92,39 +118,41 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
         }
       };
 
-      this.triggerHandlers.set(triggerEl, clickHandler);
-      this.triggerElements.set(mark, triggerEl);
+      this.triggerHandlers!.set(triggerEl, clickHandler);
+      this.triggerElements!.set(mark, triggerEl);
 
       triggerEl.addEventListener('click', clickHandler);
       mark.appendChild(triggerEl);
     });
+
+    this.connectObserver();
   }
 
   private setupGlobalEventListeners (): void {
     const scrollHandler = () => this.tooltipService.hide();
-    document.addEventListener('scroll', scrollHandler, true);
-    window.addEventListener('scroll', scrollHandler, true);
-    this.triggerHandlers.set(document, scrollHandler);
+    document.addEventListener('scroll', scrollHandler, { capture: true, signal: this.abortCtrl.signal });
+    window.addEventListener('scroll', scrollHandler, { capture: true, signal: this.abortCtrl.signal });
+    this.triggerHandlers!.set(document, scrollHandler);
 
     const clickHandler = (event: MouseEvent) => {
       if (!this.isClickInsideTooltipOrTrigger(event)) {
         this.tooltipService.hide();
       }
     };
-    document.addEventListener('click', clickHandler, true);
-    this.triggerHandlers.set(document, clickHandler);
+    document.addEventListener('click', clickHandler, { capture: true, signal: this.abortCtrl.signal });
+    this.triggerHandlers!.set(document, clickHandler);
 
     const selectionHandler = () => {
-      setTimeout(() => {
+      queueMicrotask(() => {
         const selection = window.getSelection();
         if (selection && selection.toString().length > 0) {
           this.tooltipService.hide();
         }
-      }, 0);
+      });
     };
-    document.addEventListener('mouseup', selectionHandler, true);
-    document.addEventListener('keyup', selectionHandler, true);
-    this.triggerHandlers.set(document, selectionHandler);
+    document.addEventListener('mouseup', selectionHandler, { capture: true, signal: this.abortCtrl.signal });
+    document.addEventListener('keyup', selectionHandler, { capture: true, signal: this.abortCtrl.signal });
+    this.triggerHandlers!.set(document, selectionHandler);
   }
 
   /**
@@ -148,45 +176,20 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     return !!(trigger && annotationContainer.contains(trigger));
   }
 
-  private cleanupGlobalEventListeners (): void {
-    const scrollHandler = this.triggerHandlers.get(document);
-    if (scrollHandler) {
-      document.removeEventListener('scroll', scrollHandler, true);
-      window.removeEventListener('scroll', scrollHandler, true);
-      this.triggerHandlers.delete(document);
-    }
-
-    const clickHandler = this.triggerHandlers.get(document);
-    if (clickHandler) {
-      document.removeEventListener('click', clickHandler, true);
-      this.triggerHandlers.delete(document);
-    }
-
-    const selectionHandler = this.triggerHandlers.get(document);
-    if (selectionHandler) {
-      document.removeEventListener('mouseup', selectionHandler, true);
-      document.removeEventListener('keyup', selectionHandler, true);
-      this.triggerHandlers.delete(document);
-    }
-  }
-
   private cleanupTriggers (): void {
-    const marks = this.el.nativeElement.querySelectorAll('mark[data-annotation-id]');
+    const marks = this.getMarks();
 
     marks.forEach((mark: HTMLElement) => {
-      const triggerEl = this.triggerElements.get(mark);
+      const triggerEl = this.triggerElements!.get(mark);
       if (triggerEl) {
-        const handler = this.triggerHandlers.get(triggerEl);
+        const handler = this.triggerHandlers!.get(triggerEl);
         if (handler) {
           triggerEl.removeEventListener('click', handler);
-          this.triggerHandlers.delete(triggerEl);
+          this.triggerHandlers!.delete(triggerEl);
         }
         triggerEl.remove();
       }
-      this.triggerElements.delete(mark);
+      this.triggerElements!.delete(mark);
     });
-
-    this.triggerHandlers = new WeakMap();
-    this.triggerElements = new WeakMap();
   }
 }

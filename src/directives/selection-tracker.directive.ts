@@ -1,18 +1,25 @@
-import { Directive, ElementRef, HostListener, inject, OnDestroy, output } from '@angular/core';
-
 // © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
 // Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
 // Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
 // **Уникальные решения:**
 // * Система аннотаций к тексту — собственная разработка.
 // * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
+
+import { Directive, ElementRef, HostListener, inject, OnDestroy, output } from '@angular/core';
+
 @Directive({
   selector: '[appSelectionTracker]'
 })
 export class SelectionTracker implements OnDestroy {
   selectionDetected = output<Range | null>();
-  private scrollListeners: Map<HTMLElement, () => void> = new Map();
   private el = inject(ElementRef<HTMLElement>);
+  private abortCtrl = new AbortController();
+  handleSelectionChange = () => {
+    if (document.activeElement !== this.el.nativeElement) {
+      this.selectionDetected.emit(null);
+      return;
+    }
+  }
 
   constructor() {
     this.setupScrollListeners();
@@ -32,19 +39,13 @@ export class SelectionTracker implements OnDestroy {
 
   @HostListener('mousedown')
   @HostListener('touchstart')
-  onNewSelectionEvent(): void {
+  @HostListener('keyup')
+  onClearSelectionEvent(): void {
     this.selectionDetected.emit(null);
   }
 
   private setupSelectionChangeHandler(): void {
-    document.addEventListener('selectionchange', this.handleSelectionChange.bind(this), { passive: true });
-  }
-
-  private handleSelectionChange(): void {
-    if (document.activeElement !== this.el.nativeElement) {
-      this.selectionDetected.emit(null);
-      return;
-    }
+    document.addEventListener('selectionchange', this.handleSelectionChange, { passive: true, signal: this.abortCtrl.signal });
   }
 
   private emitCurrentSelection(): void {
@@ -84,16 +85,10 @@ export class SelectionTracker implements OnDestroy {
       queueMicrotask(() => this.emitCurrentSelection());
     };
 
-    element.addEventListener('scroll', handler, { passive: true });
-    this.scrollListeners.set(element, handler);
+    element.addEventListener('scroll', handler, { passive: true, signal: this.abortCtrl.signal });
   }
 
   ngOnDestroy(): void {
-    this.scrollListeners.forEach((handler, element) => {
-      element.removeEventListener('scroll', handler);
-    });
-    this.scrollListeners.clear();
-
-    document.removeEventListener('selectionchange', this.handleSelectionChange.bind(this));
+    this.abortCtrl.abort();
   }
 }

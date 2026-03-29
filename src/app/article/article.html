@@ -1,6 +1,10 @@
 <div appTooltipContainer>
   <h1>{{  article().title }}</h1>
-  <div [innerHTML]="article().text | safeHtmlWithAnnotations"></div>
+  <div
+    [innerHTML]="article().text | safeHtmlWithAnnotations"
+    appSelectionTracker
+    (selectionDetected)="onSelectionDetected($event)"
+  ></div>
 </div>
 <app-toolbar>
   <div class="links">
@@ -13,3 +17,4 @@
     <app-article-edit-button [article]="article()" />
   </div>
 </app-toolbar>
+<app-annotation-button/>
