@@ -31,7 +31,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
   ngOnDestroy (): void {
     this.abortCtrl.abort();
     this.cleanupTriggers();
-    this.disconnectObserver();
+    this.disconnect();
     this.triggerHandlers = null;
     this.triggerElements = null;
   }
@@ -67,14 +67,14 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
       }
 
       if (needsReinit) {
-        setTimeout(() => this.reinitializeMarks(), 0);
+        queueMicrotask(() => this.reinitializeMarks());
       }
     });
 
-    this.connectObserver();
+    this.connect();
   }
 
-  private connectObserver () {
+  private connect () {
     if (this.observer) {
       this.observer.observe(this.el.nativeElement, {
         childList: true,
@@ -83,7 +83,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     }
   }
 
-  private disconnectObserver() {
+  private disconnect() {
     if (this.observer) {
       this.observer.disconnect();
     }
@@ -95,7 +95,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
   }
 
   private setupAnnotationTriggers (): void {
-    this.disconnectObserver();
+    this.disconnect();
     const marks = this.getMarks();
 
     marks.forEach((mark: HTMLElement) => {
@@ -125,7 +125,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
       mark.appendChild(triggerEl);
     });
 
-    this.connectObserver();
+    this.connect();
   }
 
   private setupGlobalEventListeners (): void {
@@ -155,9 +155,6 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     this.triggerHandlers!.set(document, selectionHandler);
   }
 
-  /**
-   * Проверяет, был ли клик внутри тултипа или его триггер‑элемента
-   */
   private isClickInsideTooltipOrTrigger (event: MouseEvent): boolean {
     const target = event.target as HTMLElement;
     const annotationContainer = this.el.nativeElement;

@@ -8,6 +8,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { IAnnotationList } from './annotations.service';
 
+const markSelector = 'mark[data-annotation-id]';
 @Injectable({ providedIn: 'root' })
 export class AnnotationsRenderer implements OnDestroy {
   private annotations!: IAnnotationList;
@@ -20,10 +21,11 @@ export class AnnotationsRenderer implements OnDestroy {
   }
 
   applyStylesToAllAnnotations(): void {
+    this.disconnect()
     if (!this.annotations.size) {
       return;
     }
-    const marks = document.querySelectorAll('mark[data-annotation-id]');
+    const marks = document.querySelectorAll(markSelector);
     marks.forEach(mark => {
       const annotationId = mark.getAttribute('data-annotation-id');
       if (!annotationId || !this.annotations.has(annotationId)) return;
@@ -33,6 +35,7 @@ export class AnnotationsRenderer implements OnDestroy {
 
       mark.setAttribute('style', `background: ${annotation.color}`);
     });
+    this.connect();
   }
 
   private setupGlobalObserver(): void {
@@ -43,7 +46,7 @@ export class AnnotationsRenderer implements OnDestroy {
           for (const node of mutation.addedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as HTMLElement;
-              if (element.matches('mark[data-annotation-id]') ||
+              if (element.matches(markSelector) ||
                 element.querySelector('mark[data-annotation-id]')) {
                 shouldUpdate = true;
                 break;
@@ -58,13 +61,18 @@ export class AnnotationsRenderer implements OnDestroy {
       }
     });
 
+    this.connect();
+  }
 
-    this.observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: false,
-      characterData: false
-    });
+  private connect() {
+    if (this.observer) {
+      this.observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: false,
+        characterData: false
+      });
+    }
   }
 
   private disconnect() {
