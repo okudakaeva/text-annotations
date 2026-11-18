@@ -144,4 +144,19 @@ export class AnnotationsRenderer implements OnDestroy {
 
     return [Number(match[0]), Number(match[1]), Number(match[2])];
   }
+
+  private getContrastTextColor(color: string): string {
+    const temp = document.createElement('span');
+    temp.style.color = color;
+    document.body.appendChild(temp);
+    const rgb = getComputedStyle(temp).color;
+    temp.remove();
+
+    const match = rgb.match(/\d+/g);
+    if (!match || match.length < 3) return '#111111';
+
+    const [r, g, b] = match.map(Number);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 145 ? '#111111' : '#ffffff';
+  }
 }
