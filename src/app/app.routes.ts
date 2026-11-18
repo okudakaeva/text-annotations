@@ -11,34 +11,37 @@ export const routes: Routes = [
   {
     path: '',
     component: List,
-    title: 'Список статей',
+    title: 'Список статей — Text Annotations',
   },
   {
     path: 'article/new',
     component: ArticleEdit,
+    title: 'Новая статья — Text Annotations',
     resolve: {
       tempId: articleTempIdResolver,
-    }
+    },
   },
   {
     path: 'article/:id',
     component: Article,
+    title: 'Просмотр статьи — Text Annotations',
     resolve: {
       article: articleResolver,
       annotations: annotationsResolver,
-    }
+    },
   },
   {
     path: 'article/:id/edit',
     component: ArticleEdit,
+    title: 'Редактирование статьи — Text Annotations',
     resolve: {
       article: articleResolver,
       annotations: annotationsResolver,
-    }
+    },
   },
   {
     path: '**',
     component: NotFound,
-    title: 'Страница не найдена',
-  }
+    title: 'Страница не найдена — Text Annotations',
+  },
 ];

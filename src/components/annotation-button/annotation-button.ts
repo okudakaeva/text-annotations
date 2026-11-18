@@ -1,136 +1,110 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  inject,
-  OnDestroy,
-  OnInit, signal,
-  ViewChild
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { Button } from '../button/button';
-import { Subscription } from 'rxjs';
-import {
-  AnnotationButtonPosition,
-  AnnotationButtonService,
-  annotationButtonStartPosition
-} from './annotation-button.service';
+import { AnnotationButtonService } from './annotation-button.service';
 import { DialogService } from '../dialog/dialog.service';
 import { AnnotationDialog } from '../annotation-dialog/annotation-dialog';
-import { ActivatedRoute } from '@angular/router';
 import { AnnotationsService, IAnnotation } from '../../services';
 
-// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
-// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
-// Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
-// **Уникальные решения:**
-// * Система аннотаций к тексту — собственная разработка.
-// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
 @Component({
   selector: 'app-annotation-button',
   imports: [Button],
   template: `
     <app-button
-      #buttonElement
       type="button"
       hint="Создать аннотацию"
-      (click)="openAnnotationDialog()"
+      (clickAction)="openAnnotationDialog()"
       title="💬"
       [style.left.px]="position().x"
       [style.top.px]="position().y"
-      [style.visibility]="position().visible ? 'visible' : 'hidden' "
+      [style.visibility]="position().visible ? 'visible' : 'hidden'"
       [style.position]="'fixed'"
     />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AnnotationButton implements OnInit, OnDestroy {
-  position = signal<AnnotationButtonPosition>(annotationButtonStartPosition);
-  private subscription: Subscription | null = null;
+export class AnnotationButton {
   private readonly positionService = inject(AnnotationButtonService);
   private readonly dialogService = inject(DialogService);
   private readonly route = inject(ActivatedRoute);
   private readonly annotationService = inject(AnnotationsService);
-  @ViewChild('buttonElement') buttonElement!: ElementRef<HTMLElement>;
 
-  ngOnInit (): void {
-    this.subscription = this.positionService.getPositionUpdates().subscribe(pos => {
-      this.position.set(pos);
-    });
-  }
+  readonly position = this.positionService.position;
 
-  openAnnotationDialog (): void {
+  openAnnotationDialog(): void {
     const annotationId = this.wrapSelectionWithAnnotation();
-
     if (!annotationId) {
       return;
     }
 
+    this.positionService.hideButton();
+
     this.dialogService.open(AnnotationDialog, {
       annotation: {
         id: annotationId,
-        text: ''
+        text: '',
       },
-      onSaveAnnotation: (annotation: IAnnotation) => {
-        const articleId = this.route.snapshot.paramMap.get('id') ?? this.route.snapshot.data['tempId'];
-        this.annotationService.createOrUpdate(annotation, articleId);
+      onSaveAnnotation: async (annotation: IAnnotation) => {
+        const articleId =
+          this.route.snapshot.paramMap.get('id') ?? this.route.snapshot.data['tempId'];
+        await firstValueFrom(this.annotationService.createOrUpdate(annotation, articleId));
         this.markAnnotation(annotation);
       },
       onCloseDialog: () => {
         this.removeAnnotationMark(annotationId);
-      }
+      },
     });
   }
 
-  ngOnDestroy (): void {
-    if (this.subscription) {
-      this.subscription.unsubscribe();
-    }
-  }
-
-  private wrapSelectionWithAnnotation (): string | null {
+  private wrapSelectionWithAnnotation(): string | null {
     const selection = window.getSelection();
-
     if (!selection || selection.rangeCount === 0) {
       return null;
     }
 
     const range = selection.getRangeAt(0);
-    const selectedText = selection.toString();
-
-    if (!selectedText) {
+    if (!selection.toString().trim()) {
       return null;
     }
 
-    const annotationId = Date.now().toString();
+    const annotationId =
+      typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : Date.now().toString();
 
     const annotationEl = document.createElement('mark');
     annotationEl.setAttribute('data-annotation-id', annotationId);
     annotationEl.setAttribute('data-no-tooltip', 'true');
-    annotationEl.textContent = selectedText;
 
-    range.deleteContents();
+    const fragment = range.extractContents();
+    annotationEl.appendChild(fragment);
     range.insertNode(annotationEl);
 
+    selection.removeAllRanges();
     return annotationId;
   }
 
-  private removeAnnotationMark (id: string): void {
-    const annotationEl = document.querySelector(`[data-annotation-id="${ id }"]`);
+  private removeAnnotationMark(id: string): void {
+    const annotationEl = document.querySelector(`[data-annotation-id="${id}"]`);
+    if (!annotationEl?.parentNode) return;
 
-    if (annotationEl) {
-      const textNode = document.createTextNode(annotationEl.textContent || '');
-      annotationEl.parentNode?.replaceChild(textNode, annotationEl);
+    const parent = annotationEl.parentNode;
+    while (annotationEl.firstChild) {
+      parent.insertBefore(annotationEl.firstChild, annotationEl);
     }
+    parent.removeChild(annotationEl);
+    parent.normalize();
   }
 
-  private markAnnotation (annotation: IAnnotation): void {
-    const annotationEl = document.querySelector(`[data-annotation-id="${ annotation.id }"]`);
+  private markAnnotation(annotation: IAnnotation): void {
+    const annotationEl = document.querySelector<HTMLElement>(
+      `[data-annotation-id="${annotation.id}"]`
+    );
+    if (!annotationEl) return;
 
-    if (annotationEl) {
-      annotationEl.setAttribute('style', ` background: ${annotation.color || ''}` );
-      annotationEl.removeAttribute('data-no-tooltip');
-      annotationEl.parentNode?.replaceChild(annotationEl, annotationEl); // trigger mutation
-    }
+    annotationEl.style.backgroundColor = annotation.color || '';
+    annotationEl.removeAttribute('data-no-tooltip');
+    annotationEl.dispatchEvent(new Event('input', { bubbles: true }));
   }
 }
-

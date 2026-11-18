@@ -1,42 +1,58 @@
-import { Component, inject, input, OnChanges, SimpleChanges } from '@angular/core';
-import { AnnotationsRenderer, IAnnotationList, IArticle } from '../../services';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
-  Toolbar,
-  TooltipContainer,
+  AnnotationButton,
+  AnnotationButtonService,
   ArticleDeleteButton,
   ArticleEditButton,
-  AnnotationButtonService,
-  AnnotationButton
+  Toolbar,
+  TooltipContainer,
 } from '../../components';
-import { SafeHtmlWithAnnotationsPipe, SelectionTracker } from '../../directives';
+import {
+  SafeHtmlWithAnnotationsPipe,
+  SelectionTracker,
+} from '../../directives';
+import {
+  AnnotationsRenderer,
+  IAnnotationList,
+  IArticle,
+} from '../../services';
 
 @Component({
   selector: 'app-article',
   imports: [
-    RouterLink, Toolbar,
-    SafeHtmlWithAnnotationsPipe,
-    TooltipContainer,
+    RouterLink,
+    Toolbar,
     ArticleDeleteButton,
     ArticleEditButton,
+    TooltipContainer,
+    SafeHtmlWithAnnotationsPipe,
     SelectionTracker,
     AnnotationButton,
   ],
   templateUrl: './article.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Article implements OnChanges {
-  article = input.required<IArticle>();
-  annotations = input.required<IAnnotationList>();
+export class Article {
+  readonly article = input.required<IArticle>();
+  readonly annotations = input<IAnnotationList>(new Map());
+
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
   private readonly annotationButtonService = inject(AnnotationButtonService);
 
-  ngOnChanges (changes: SimpleChanges) {
-    if (changes['article'] && this.article()) {
+  constructor() {
+    effect(() => {
       this.annotationsRenderer.initData(this.annotations());
-    }
+    });
   }
 
-  onSelectionDetected (range: Range | null): void {
+  onSelectionDetected(range: Range | null): void {
     this.annotationButtonService.processSelection(range);
   }
 }

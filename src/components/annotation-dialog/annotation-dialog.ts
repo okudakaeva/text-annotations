@@ -1,18 +1,13 @@
-import { ChangeDetectionStrategy, Component, input, OnChanges, output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Toolbar } from '../toolbar/toolbar';
 import { Button } from '../button/button';
 import { IAnnotation } from '../../services';
 
-// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
-// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
-// Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
-// **Уникальные решения:**
-// * Система аннотаций к тексту — собственная разработка.
-// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
+const DEFAULT_COLOR = '#ffffe0';
 
-const defaultColor = '#ffffe0';
 @Component({
+  selector: 'app-annotation-dialog',
   imports: [ReactiveFormsModule, Toolbar, Button],
   template: `
     <form [formGroup]="annotationForm" (ngSubmit)="createAnnotation()">
@@ -26,7 +21,21 @@ const defaultColor = '#ffffe0';
           cols="30"
         ></textarea>
         <label for="annotation-color">Выберите цвет:&nbsp;</label>
-        <input formControlName="color" id="annotation-color" type="color" value="${defaultColor}">
+        <input
+          formControlName="color"
+          id="annotation-color"
+          type="color"
+          list="annotation-color-presets"
+        />
+        <datalist id="annotation-color-presets">
+          <option value="#ffffe0"></option>
+          <option value="#fff59d"></option>
+          <option value="#c8e6c9"></option>
+          <option value="#b3e5fc"></option>
+          <option value="#f8bbd0"></option>
+          <option value="#e1bee7"></option>
+          <option value="#ffe0b2"></option>
+        </datalist>
         <app-toolbar>
           <div></div>
           <div class="actions">
@@ -34,52 +43,56 @@ const defaultColor = '#ffffe0';
               title="Отмена"
               theme="light"
               type="button"
-              (clickAction)="closeDialog()"/>
-            <app-button title="Создать"/>
+              (clickAction)="closeDialog()"
+            />
+            <app-button title="Создать" />
           </div>
         </app-toolbar>
       </div>
-  </form>
+    </form>
   `,
   styleUrl: './annotation-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AnnotationDialog implements OnChanges {
-  annotation = input.required<IAnnotation>();
-  onSaveAnnotation = input.required<(a: IAnnotation) => void>();
-  onCloseDialog = input<() => void>(() => {});
-  okEvent = output<void>();
-  cancelEvent = output<void>();
-  annotationForm = new FormGroup({
+export class AnnotationDialog {
+  readonly annotation = input.required<IAnnotation>();
+  readonly onSaveAnnotation = input.required<(a: IAnnotation) => void>();
+  readonly onCloseDialog = input<() => void>(() => {});
+  readonly okEvent = output<void>();
+  readonly cancelEvent = output<void>();
+
+  readonly annotationForm = new FormGroup({
     text: new FormControl('', [Validators.required, Validators.maxLength(200)]),
-    color: new FormControl(defaultColor),
+    color: new FormControl(DEFAULT_COLOR, { nonNullable: true }),
   });
 
-  ngOnChanges (changes: SimpleChanges): void {
-    if (changes['annotation'] && this.annotation()) {
-      queueMicrotask(() => {
-        this.annotationForm.patchValue({
-          text: this.annotation()!.text || '',
-          color: this.annotation()!.color || '#ffffe0',
-        });
+  constructor() {
+    effect(() => {
+      const current = this.annotation();
+      this.annotationForm.patchValue({
+        text: current.text || '',
+        color: current.color || DEFAULT_COLOR,
       });
-    }
+    });
   }
 
-  createAnnotation () {
-    if (this.annotationForm.valid) {
-      const annotation = {
-        ...this.annotation() || {},
-        text: this.annotationForm.get('text')?.value || '',
-        color: this.annotationForm.get('color')?.value || defaultColor,
-      };
-      this.onSaveAnnotation()(annotation);
-      // todo: здесь сохранять в модель article исходный чистый текст и аннотированную разметку для дальнейшего показа
-      this.okEvent.emit();
+  createAnnotation(): void {
+    if (this.annotationForm.invalid) {
+      this.annotationForm.markAllAsTouched();
+      return;
     }
+
+    const updated: IAnnotation = {
+      ...this.annotation(),
+      text: this.annotationForm.get('text')?.value?.trim() ?? '',
+      color: this.annotationForm.get('color')?.value ?? DEFAULT_COLOR,
+    };
+
+    this.onSaveAnnotation()(updated);
+    this.okEvent.emit();
   }
 
-  closeDialog () {
+  closeDialog(): void {
     this.onCloseDialog()();
     this.cancelEvent.emit();
   }

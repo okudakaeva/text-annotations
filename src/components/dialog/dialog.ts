@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostListener,
   input,
   output,
   Type,
@@ -11,7 +12,7 @@ import { DialogContent } from './dialog-content';
   selector: 'app-dialog',
   imports: [DialogContent],
   template: `
-    <div class="dialog-overlay">
+    <div class="dialog-overlay" role="dialog" aria-modal="true">
       <div class="dialog-window">
         <div class="dialog-content">
           <app-dialog-content
@@ -28,16 +29,20 @@ import { DialogContent } from './dialog-content';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dialog {
-  dynamicContent = input.required<Type<any>>();
-  bindings = input<{ [key: string]: any }>();
-  closed = output<void>();
+  readonly dynamicContent = input.required<Type<unknown>>();
+  readonly bindings = input<Record<string, unknown>>();
+  readonly closed = output<void>();
 
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    this.onCancel();
+  }
 
-  onCancel (): void {
+  onCancel(): void {
     this.closed.emit();
   }
 
-  onOk (): void {
+  onOk(): void {
     this.closed.emit();
   }
 }

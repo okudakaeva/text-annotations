@@ -1,26 +1,33 @@
 import {
-  Injectable,
   ApplicationRef,
   ComponentRef,
-  Type,
-  inject,
-  EnvironmentInjector,
   createComponent,
+  EnvironmentInjector,
+  inject,
+  Injectable,
+  inputBinding,
   outputBinding,
-  inputBinding
+  Type,
 } from '@angular/core';
 import { Dialog } from './dialog';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DialogService {
   private dialogRef: ComponentRef<Dialog> | null = null;
   private hostRef: HTMLElement | null = null;
+  private scrollPosition = 0;
+  private isScrollLocked = false;
+
   private readonly injector = inject(EnvironmentInjector);
   private readonly appRef = inject(ApplicationRef);
 
-  open<T> (component: Type<any>, bindings?: any): ComponentRef<Dialog> {
+  open<T>(component: Type<T>, bindings?: Record<string, unknown>): ComponentRef<Dialog> {
+    if (this.dialogRef) {
+      this.close();
+    }
+
     this.hostRef = document.createElement('app-dialog-host');
     this.dialogRef = createComponent(Dialog, {
       environmentInjector: this.injector,
@@ -28,13 +35,9 @@ export class DialogService {
       bindings: [
         inputBinding('dynamicContent', () => component),
         inputBinding('bindings', () => bindings),
-        outputBinding('closed', () => {
-          this.unlockScroll();
-          this.destroyDialog();
-        }),
+        outputBinding('closed', () => this.close()),
       ],
     });
-
 
     this.appRef.attachView(this.dialogRef.hostView);
     document.body.appendChild(this.hostRef);
@@ -43,9 +46,14 @@ export class DialogService {
     return this.dialogRef;
   }
 
-  private destroyDialog (): void {
+  close(): void {
+    this.unlockScroll();
+    this.destroyDialog();
+  }
+
+  private destroyDialog(): void {
     if (this.dialogRef && this.hostRef) {
-      document.body.removeChild(this.hostRef);
+      this.hostRef.remove();
       this.appRef.detachView(this.dialogRef.hostView);
       this.dialogRef.destroy();
     }
@@ -53,9 +61,9 @@ export class DialogService {
     this.hostRef = null;
   }
 
-  private scrollPosition = 0;
-
   private lockScroll(): void {
+    if (this.isScrollLocked) return;
+    this.isScrollLocked = true;
     this.scrollPosition = window.scrollY;
     document.body.style.position = 'fixed';
     document.body.style.top = `-${this.scrollPosition}px`;
@@ -64,6 +72,8 @@ export class DialogService {
   }
 
   private unlockScroll(): void {
+    if (!this.isScrollLocked) return;
+    this.isScrollLocked = false;
     document.body.style.position = '';
     document.body.style.top = '';
     document.body.style.left = '';

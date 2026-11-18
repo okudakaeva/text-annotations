@@ -1,7 +1,7 @@
 .tooltip {
   position: fixed;
   background: #000;
-  padding: var(--form-padding-v) var(--form-padding-h);
+  padding: var(--form-padding-v) calc(var(--form-padding-h) + 12px) var(--form-padding-v) var(--form-padding-h);
   color: #fff;
   border-radius: 5px;
   z-index: 100;
@@ -9,7 +9,9 @@
   opacity: 0;
   transition: opacity .3s ease .2s;
   font-size: 14px;
-  max-width: 500px;
+  max-width: min(500px, calc(100vw - 20px));
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 
   &.visible {
     visibility: visible;
@@ -19,11 +21,13 @@
   button {
     background: transparent;
     color: #fff;
-    padding: 0;
+    padding: 2px 6px;
     position: absolute;
     border: 0;
-    right: 3px;
-    top: 0;
+    right: 2px;
+    top: 2px;
+    font-size: 16px;
+    line-height: 1;
     cursor: pointer;
   }
 }

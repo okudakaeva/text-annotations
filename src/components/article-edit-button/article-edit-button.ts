@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { IArticle } from '../../services';
 import { Router } from '@angular/router';
+import { IArticle } from '../../services';
 import { Button } from '../button/button';
 
 @Component({
@@ -11,13 +11,15 @@ import { Button } from '../button/button';
     type="button"
     hint="Редактировать"
     theme="light"
-    (clickAction)="goToEdit()"/>`,
+    (clickAction)="goToEdit()"
+  />`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleEditButton {
-  article = input.required<IArticle>();
+  readonly article = input.required<IArticle>();
   private readonly router = inject(Router);
-  goToEdit () {
-    this.router.navigate(['article', this.article().id, 'edit']);
+
+  goToEdit(): void {
+    void this.router.navigate(['/article', this.article().id, 'edit']);
   }
 }

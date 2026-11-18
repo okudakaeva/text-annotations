@@ -1,72 +1,53 @@
-© Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
+# Text Annotations
 
-Данный код создан в рамках тестового задания компании UNADESK для позиции [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
+Веб-приложение для создания, редактирования и интерактивного аннотирования текстовых документов с цветовой маркировкой выделенных фрагментов и всплывающими подсказками.
 
-**Условия использования:**
-* Код может быть использован UNADESK и иными компаниями исключительно для оценки профессиональных навыков автора.
-* Любое коммерческое использование, публикация или внедрение в продукты компаний без письменного согласия автора **запрещены**.
-* Не предназначен для коммерческого использования без письменного согласия автора.
-* Копирование, распространение или модификация кода без разрешения автора **запрещены**.
+https://okudakaeva.github.io/text-annotations/
 
-Идея реализации и проектирования родилась в рамках работы в Яндекс.Крауд IA-тренером в декабре 2025 года.
-Так же мной полностью спроектирован весь интерфейс.
+![Performance](https://raw.githubusercontent.com/okudakaeva/text-annotations/refs/heads/badges/images/lighthouse_performance.svg) ![Accessibility](https://raw.githubusercontent.com/okudakaeva/text-annotations/refs/heads/badges/images/lighthouse_accessibility.svg) ![Best Practices](https://raw.githubusercontent.com/okudakaeva/text-annotations/refs/heads/badges/images/lighthouse_best-practices.svg) ![SEO](https://raw.githubusercontent.com/okudakaeva/text-annotations/refs/heads/badges/images/lighthouse_seo.svg)
 
-# TextAnnonations
+---
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+## Ключевая функциональность
 
-## Development server
+* **Редактор и просмотр документов:** Создание, редактирование и удаление статей с реактивной валидацией форм и сохранением структуры форматирования.
+* **Интерактивное аннотирование через Selection API:** Выделение произвольных фрагментов текста (включая многострочные и вложенные DOM-узлы) с автоматическим позиционированием контекстной кнопки создания заметки в пределах viewport.
+* **Цветовая маркировка и тултипы:** Назначение индивидуального цвета подсветки (`<mark data-annotation-id>`) и отображение всплывающих подсказок с автопереворотом при нехватке места у границ экрана.
+* **XSS-защита и санитизация:** Многоуровневая очистка пользовательского HTML через **DOMPurify** с белым списком разрешённых тегов и атрибутов, а также безопасное применение стилей через CSSOM.
+* **Клиентское хранилище:** Персистентное хранение статей и связанных аннотаций с реактивным обновлением интерфейса.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
-```
+## Архитектура и технологический стек
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+* **Фреймворк:** Angular 21 (`@angular/core` 21.2, Standalone Components, `ChangeDetectionStrategy.OnPush`).
+* **Реактивность:** Angular Signals (`signal`, `computed`, `effect`, `input`, `output`), `withComponentInputBinding()`, RxJS (`firstValueFrom`, `takeUntilDestroyed`).
+* **Работа с DOM и формами:**
+  * `ReactiveContentEditable` — кастомный `ControlValueAccessor` для `contenteditable`-области с фильтрацией вставки (`plain text`), защитой от дублирования событий и санитизацией.
+  * `SelectionTracker` — отслеживание текстовых выделений (мышь, тач, клавиатура, скролл) с очисткой слушателей через `AbortController`.
+  * `AnnotationsRenderer` — глобальный сервис синхронизации стилей аннотаций через `MutationObserver` и микротаски.
+  * Динамические оверлеи (`DialogService`, `TooltipService`) на базе `createComponent` с `inputBinding` / `outputBinding` и нативной анимацией выхода `animate.leave`.
+* **Типизация и тестирование:** TypeScript 5.9 (`strict: true`, `strictTemplates: true`), юнит-тесты на **Vitest** и **jsdom**.
+* **CI/CD:** Автоматический прогон тестов и сборка production-бандла в **GitHub Actions** с деплоем на **GitHub Pages**.
 
-## Code scaffolding
+---
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Локальный запуск и команды
 
 ```bash
-ng build
+# Установка зависимостей
+npm ci
+
+# Запуск dev-сервера (http://localhost:4200)
+npm start
+
+# Запуск юнит-тестов (Vitest)
+npx ng test --watch=false
+
+# Production-сборка
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+© Кудакаева Оксана Александровна

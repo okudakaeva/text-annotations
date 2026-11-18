@@ -1,112 +1,126 @@
-import { Component, ElementRef, forwardRef, inject, input, OnChanges, SimpleChanges, viewChild } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  viewChild,
+} from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import {
   FormControl,
   FormGroup,
-  NG_VALUE_ACCESSOR,
-  ReactiveFormsModule, ValidationErrors,
-  Validators
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
 } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { ReactiveContentEditable, SelectionTracker } from '../../directives';
 import {
-  ReactiveContentEditable,
-  SelectionTracker
-} from '../../directives';
-import {
-  Button,
-  Toolbar,
-  PreloaderService,
-  AnnotationButtonService,
   AnnotationButton,
+  AnnotationButtonService,
+  ArticleDeleteButton,
+  Button,
+  PreloaderService,
+  Toolbar,
   TooltipContainer,
-  ArticleDeleteButton
 } from '../../components';
-import { AnnotationsRenderer, ArticleService, IAnnotationList, IArticle } from '../../services';
-import { finalize } from 'rxjs';
+import {
+  AnnotationsRenderer,
+  ArticleService,
+  IAnnotationList,
+  IArticle,
+} from '../../services';
 
 @Component({
-  selector: 'app-article',
+  selector: 'app-article-edit',
   imports: [
-    RouterLink, ReactiveFormsModule,
+    RouterLink,
+    ReactiveFormsModule,
     ReactiveContentEditable,
-    Button, Toolbar,
-    SelectionTracker, AnnotationButton,
+    Button,
+    Toolbar,
+    SelectionTracker,
+    AnnotationButton,
     TooltipContainer,
-    ArticleDeleteButton
+    ArticleDeleteButton,
   ],
   templateUrl: './article-edit.html',
   styleUrl: './article-edit.scss',
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ArticleEdit),
-      multi: true,
-    },
-  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEdit implements OnChanges {
-  article = input<IArticle>();
-  tempId = input<IArticle['id'] | null>(null);
-  annotations = input.required<IAnnotationList>();
+export class ArticleEdit {
+  readonly article = input<IArticle>();
+  readonly tempId = input<IArticle['id'] | null>(null);
+  readonly annotations = input<IAnnotationList>(new Map());
+
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
   private readonly annotationButtonService = inject(AnnotationButtonService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
-  articleTextEl = viewChild<ElementRef>('articleText');
-  articleForm = new FormGroup({
+
+  readonly articleTextEl = viewChild<ElementRef<HTMLElement>>('articleText');
+
+  readonly articleForm = new FormGroup({
     title: new FormControl('', [Validators.required, Validators.maxLength(100)]),
-    text: new FormControl('', [this.textRequiredValidator.bind(this)]),
+    text: new FormControl('', [() => this.textRequiredValidator()]),
   });
 
-  ngOnChanges (changes: SimpleChanges): void {
-    if (changes['article'] && this.article()) {
-      this.annotationsRenderer.initData(this.annotations());
+  constructor() {
+    effect(() => {
+      const currentAnnotations = this.annotations();
+      const currentArticle = this.article();
 
-      queueMicrotask(() => {
+      this.annotationsRenderer.initData(currentAnnotations);
+
+      if (currentArticle) {
         this.articleForm.patchValue({
-          title: this.article()!.title || '',
-          text: this.article()!.text || '',
+          title: currentArticle.title || '',
+          text: currentArticle.text || '',
         });
-      });
-    }
+      }
+    });
   }
 
-  isTextEmpty (): boolean {
-    const text = this.articleTextEl()?.nativeElement?.textContent.trim() ?? '';
+  isTextEmpty(): boolean {
+    const text = this.articleTextEl()?.nativeElement?.textContent?.trim() ?? '';
     return text.length === 0;
   }
 
-  isCreationMode (): boolean {
-    return !!this.tempId();
+  isCreationMode(): boolean {
+    return Boolean(this.tempId());
   }
 
-  textRequiredValidator (): ValidationErrors | null {
-    return this.isTextEmpty() ? { required: true }:null;
+  textRequiredValidator(): ValidationErrors | null {
+    return this.isTextEmpty() ? { required: true } : null;
   }
 
-  saveArticle () {
-    if (this.articleForm.valid) {
-      const data = {
-        ...this.article() || {},
-        title: this.articleForm.get('title')?.value || '',
-        text: this.articleForm.get('text')?.value || '',
-      };
-      this.preloader.show();
-      const subscription = this.articleService
-        .createOrUpdate(data, this.tempId())
-        .pipe(
-          finalize(() => this.preloader.hide()),
-        ).subscribe({
-          next: (data) => {
-            this.router.navigate(['/article', data.id], { relativeTo: this.route });
-          },
-          complete: () => subscription.unsubscribe(),
-        });
+  async saveArticle(): Promise<void> {
+    if (this.articleForm.invalid) {
+      this.articleForm.markAllAsTouched();
+      return;
+    }
+
+    const data: Partial<IArticle> = {
+      ...(this.article() ?? {}),
+      title: this.articleForm.get('title')?.value ?? '',
+      text: this.articleForm.get('text')?.value ?? '',
+    };
+
+    this.preloader.show();
+    try {
+      const saved = await firstValueFrom(
+        this.articleService.createOrUpdate(data, this.tempId())
+      );
+      await this.router.navigate(['/article', saved.id]);
+    } finally {
+      this.preloader.hide();
     }
   }
 
-  onSelectionDetected (range: Range | null): void {
+  onSelectionDetected(range: Range | null): void {
     this.annotationButtonService.processSelection(range);
   }
 }

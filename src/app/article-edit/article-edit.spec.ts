@@ -1,14 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideRouter } from '@angular/router';
 import { ArticleEdit } from './article-edit';
 
-describe('Article', () => {
+describe('ArticleEdit', () => {
   let component: ArticleEdit;
   let fixture: ComponentFixture<ArticleEdit>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ArticleEdit],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ArticleEdit);

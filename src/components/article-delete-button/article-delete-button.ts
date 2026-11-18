@@ -1,8 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { ArticleService, IArticle } from '../../services';
-import { finalize, mergeMap, of } from 'rxjs';
-import { ArticleDeleteDialog, Button, DialogService, PreloaderService } from '../index';
 import { Router } from '@angular/router';
+import { firstValueFrom, Observable, of } from 'rxjs';
+import { ArticleService, IArticle } from '../../services';
+import { ArticleDeleteDialog } from './article-delete-dialog';
+import { Button } from '../button/button';
+import { DialogService } from '../dialog/dialog.service';
+import { PreloaderService } from '../preloader/preloader.service';
 
 @Component({
   selector: 'app-article-delete-button',
@@ -12,29 +15,35 @@ import { Router } from '@angular/router';
     type="button"
     hint="Удалить"
     theme="light"
-    (clickAction)="deleteArticle()"/>`,
+    (clickAction)="deleteArticle()"
+  />`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleDeleteButton {
-  article = input.required<IArticle>();
-  returnToHome = input<boolean>(true);
-  refreshData = input(() => of({}))
+  readonly article = input.required<IArticle>();
+  readonly returnToHome = input<boolean>(true);
+  readonly refreshData = input<() => Observable<unknown>>(() => of(null));
+
   private readonly preloader = inject(PreloaderService);
   private readonly router = inject(Router);
   private readonly articleService = inject(ArticleService);
   private readonly dialogService = inject(DialogService);
-  deleteArticle () {
+
+  deleteArticle(): void {
     this.dialogService.open(ArticleDeleteDialog, {
       article: this.article(),
-      onConfirmDialog: () => {
+      onConfirmDialog: async () => {
         this.preloader.show();
-        const subscription = this.articleService.deleteArticle(this.article().id).pipe(
-          mergeMap(this.refreshData()),
-          finalize(() => this.preloader.hide()),
-        ).subscribe({
-          next: () => this.returnToHome() && this.router.navigate(['/']),
-          complete: () => subscription.unsubscribe(),
-        });
+        try {
+          await firstValueFrom(this.articleService.deleteArticle(this.article().id));
+          await firstValueFrom(this.refreshData()());
+
+          if (this.returnToHome()) {
+            await this.router.navigate(['/']);
+          }
+        } finally {
+          this.preloader.hide();
+        }
       },
     });
   }

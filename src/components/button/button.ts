@@ -2,12 +2,16 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 
 @Component({
   selector: 'app-button',
-  imports: [],
   template: `
-    <button class="button {{ theme() }}"
-            [attr.type]="type()"
-            (click)="onButtonClick($event)"
-            [attr.title]="hint()">
+    <button
+      class="button"
+      [class.light]="theme() === 'light'"
+      [attr.type]="type()"
+      [disabled]="disabled()"
+      [attr.title]="hint() || null"
+      [attr.aria-label]="hint() || title()"
+      (click)="onButtonClick($event)"
+    >
       {{ title() }}
     </button>
   `,
@@ -15,13 +19,16 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Button {
-  type = input<string>('submit');
-  theme = input<string>('dark');
-  title = input.required<string>()
-  hint = input<string>('')
-  clickAction = output<MouseEvent>();
+  readonly type = input<'button' | 'submit' | 'reset'>('submit');
+  readonly theme = input<'dark' | 'light'>('dark');
+  readonly title = input.required<string>();
+  readonly hint = input<string>('');
+  readonly disabled = input<boolean>(false);
+  readonly clickAction = output<MouseEvent>();
 
-  onButtonClick (e: MouseEvent): void {
-    this.clickAction.emit(e);
+  onButtonClick(e: MouseEvent): void {
+    if (!this.disabled()) {
+      this.clickAction.emit(e);
+    }
   }
 }

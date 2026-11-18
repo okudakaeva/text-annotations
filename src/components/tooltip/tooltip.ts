@@ -1,12 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { TooltipService, TooltipState } from './tooltip.service';
-import { Subscription } from 'rxjs';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TooltipService } from './tooltip.service';
 
 @Component({
   selector: 'app-tooltip',
   template: `
     <div
       class="tooltip"
+      role="tooltip"
+      [attr.aria-hidden]="!state().isVisible"
       [class.visible]="state().isVisible"
       [style.left.px]="state().position.x"
       [style.top.px]="state().position.y"
@@ -14,36 +15,22 @@ import { Subscription } from 'rxjs';
       <span class="tooltip-content">
         {{ state().text || '…' }}
       </span>
+      @if (state().showCloseButton) {
       <button
+        type="button"
         class="close-button"
+        aria-label="Закрыть подсказку"
         (click)="onClose()"
       >×</button>
+      }
     </div>
   `,
   styleUrl: './tooltip.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Tooltip implements OnInit, OnDestroy {
-  private tooltipService = inject(TooltipService);
-  state = signal<TooltipState>( {
-    text: '',
-    position: { x: 0, y: 0 },
-    isVisible: false,
-    showCloseButton: true,
-    size: { width: 0, height: 0 },
-  });
-
-  private dataSubscription!: Subscription;
-
-  ngOnInit(): void {
-    this.dataSubscription = this.tooltipService.getTooltipData().subscribe((state) => {
-      this.state.set(state);
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.dataSubscription?.unsubscribe();
-  }
+export class Tooltip {
+  private readonly tooltipService = inject(TooltipService);
+  readonly state = this.tooltipService.state;
 
   onClose(): void {
     this.tooltipService.hide();
