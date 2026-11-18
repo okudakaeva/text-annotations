@@ -1,10 +1,3 @@
-// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
-// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
-// Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
-// **Уникальные решения:**
-// * Система аннотаций к тексту — собственная разработка.
-// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
-
 import { AfterViewInit, Directive, ElementRef, inject, OnDestroy } from '@angular/core';
 import { TooltipService } from './tooltip.service';
 
@@ -40,26 +33,35 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     return this.el.nativeElement.querySelectorAll(markSelector);
   }
 
-  private setupDomObserver (): void {
+  private setupDomObserver(): void {
     this.observer = new MutationObserver((mutations) => {
       let needsReinit = false;
 
       for (const mutation of mutations) {
-        if (mutation.type === 'childList') {
-          for (const node of mutation.addedNodes) {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as HTMLElement;
-              if (element.matches(markSelector)) {
-                needsReinit = true;
-              }
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-no-tooltip') {
+          needsReinit = true;
+          break;
+        }
+
+        if (mutation.type !== 'childList') continue;
+
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as HTMLElement;
+            if (element.matches(markSelector) || element.querySelector(markSelector)) {
+              needsReinit = true;
+              break;
             }
           }
+        }
 
+        if (!needsReinit) {
           for (const node of mutation.removedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as HTMLElement;
-              if (element.matches(buttonSelector)) {
+              if (element.matches(buttonSelector) || element.querySelector(buttonSelector)) {
                 needsReinit = true;
+                break;
               }
             }
           }
@@ -74,13 +76,13 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     this.connect();
   }
 
-  private connect () {
-    if (this.observer) {
-      this.observer.observe(this.el.nativeElement, {
-        childList: true,
-        subtree: true
-      });
-    }
+  private connect(): void {
+    this.observer?.observe(this.el.nativeElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-no-tooltip'],
+    });
   }
 
   private disconnect() {
@@ -90,8 +92,10 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
   }
 
   private reinitializeMarks (): void {
+    this.disconnect();
     this.cleanupTriggers();
     this.setupAnnotationTriggers();
+    this.connect();
   }
 
   private setupAnnotationTriggers (): void {
@@ -155,22 +159,23 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     this.triggerHandlers!.set(document, selectionHandler);
   }
 
-  private isClickInsideTooltipOrTrigger (event: MouseEvent): boolean {
-    const target = event.target as HTMLElement;
-    const annotationContainer = this.el.nativeElement;
+  private isClickInsideTooltipOrTrigger(event: MouseEvent): boolean {
+    const target = event.target as HTMLElement | null;
+    if (!target) return false;
 
+    if (target.closest('app-tooltip')) {
+      return true;
+    }
+
+    const annotationContainer = this.el.nativeElement;
     if (!annotationContainer.contains(target)) {
       return false;
     }
 
-    const closestMark = target.closest('mark[data-annotation-id]');
-    if (closestMark && annotationContainer.contains(closestMark)) {
-      return true;
-    }
-
-    const trigger = target.closest('.annotation-trigger');
-
-    return !!(trigger && annotationContainer.contains(trigger));
+    return Boolean(
+      target.closest('mark[data-annotation-id]') ||
+      target.closest('span[data-has-tooltip]')
+    );
   }
 
   private cleanupTriggers (): void {

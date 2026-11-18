@@ -26,4 +26,14 @@
     font-size: var(--form-font-size);
     font-family: var(--font-family);
   }
+
+  input[type="color"] {
+    width: 36px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    vertical-align: middle;
+    cursor: pointer;
+  }
 }

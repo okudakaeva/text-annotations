@@ -1,7 +1,7 @@
 @if (initialized()) {
   <div class="list">
   <app-toolbar><a routerLink="/article/new">Создать статью</a></app-toolbar>
-    @for (article of articles; track article.id) {
+    @for (article of articles(); track article.id) {
       <article>
       <app-toolbar>
         <h2><a routerLink="/article/{{article.id}}">{{ article.title }}</a></h2>

@@ -3,57 +3,57 @@ import {
   ChangeDetectionStrategy,
   Component,
   ComponentRef,
-  ElementRef,
   inject,
-  Injector, input,
+  Injector,
+  input,
   inputBinding,
-  OnDestroy, output,
+  OnDestroy,
+  output,
   outputBinding,
-  Type, viewChild,
-  ViewContainerRef
+  Type,
+  ViewContainerRef,
 } from '@angular/core';
 
 @Component({
   selector: 'app-dialog-content',
   styleUrl: './dialog.scss',
-  template: `
-    <div #dialogContent></div>
-  `,
+  template: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DialogContent implements AfterViewInit, OnDestroy {
-  dynamicContent = input.required<Type<any>>();
-  bindings = input<{ [key: string]: any }>();
+  readonly dynamicContent = input.required<Type<unknown>>();
+  readonly bindings = input<Record<string, unknown>>();
+
   private readonly viewContainer = inject(ViewContainerRef);
   private readonly injector = inject(Injector);
-  private readonly dialogContent = viewChild<ElementRef<HTMLElement>>('dialogContent');
-  compRef: ComponentRef<Type<any>> | null = null;
-  okEvent = output<void>();
-  cancelEvent = output<void>();
+  private compRef: ComponentRef<unknown> | null = null;
 
-  ngAfterViewInit (): void {
+  readonly okEvent = output<void>();
+  readonly cancelEvent = output<void>();
+
+  ngAfterViewInit(): void {
     queueMicrotask(() => this.loadContent());
   }
 
-  loadContent () {
-    const data = this.bindings() || {};
-    const bindings = Object.keys(data).map((key) => {
-      return inputBinding(key, () => data[key]);
-    });
+  loadContent(): void {
+    const data = this.bindings() ?? {};
+    const dynamicBindings = Object.keys(data).map((key) =>
+      inputBinding(key, () => data[key])
+    );
+
     this.compRef = this.viewContainer.createComponent(this.dynamicContent(), {
       injector: this.injector,
       bindings: [
-        ...bindings,
+        ...dynamicBindings,
         outputBinding('okEvent', () => this.okEvent.emit()),
-        outputBinding('cancelEvent', () => this.cancelEvent.emit())
-      ]
+        outputBinding('cancelEvent', () => this.cancelEvent.emit()),
+      ],
     });
     this.compRef.changeDetectorRef.detectChanges();
   }
 
-  ngOnDestroy () {
-    if (this.compRef) {
-      this.compRef.destroy();
-    }
+  ngOnDestroy(): void {
+    this.compRef?.destroy();
+    this.compRef = null;
   }
 }

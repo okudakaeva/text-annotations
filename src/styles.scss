@@ -16,9 +16,7 @@
   "Segoe UI Symbol"
 }
 
-* {
-  outline: 0;
-}
+:focus:not(:focus-visible) { outline: 0; }
 
 body, html {
   font-family: var(--font-family);
@@ -79,16 +77,19 @@ h3 {
 }
 
 mark {
-  background-color: Highlight;
-  color: HighlightText;
+  background-color: #ffffe0;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 2px;
 
   span[data-has-tooltip] {
     &::before {
-      content: ' ⓘ';
+      content: '\00a0ⓘ';
       cursor: pointer;
       text-shadow: 0 0 1px #fff;
       font-weight: bold;
-      color: blue;
+      color: #1891fa;
     }
   }
 }
+

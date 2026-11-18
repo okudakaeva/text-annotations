@@ -1,16 +1,11 @@
-// © Кудакаеава Оксана Александровна, Россия, Ульяновск. Все права защищены. 2026
-// Код создан для тестового задания UNADESK, позиция [Frontend Senior Developer (Angular) ](https://hh.ru/vacancy/131351215).
-// Не предназначен для коммерческого использования без письменного согласия автора. Использование, копирование и модификация без письменного согласия автора запрещены.
-// **Уникальные решения:**
-// * Система аннотаций к тексту — собственная разработка.
-// * Кастомные UI‑компоненты (реализованы вместо PrimeNg по требованию задания).
-
 import {
   Directive,
   ElementRef,
   forwardRef,
   HostListener,
-  inject, OnDestroy, OnInit,
+  inject,
+  OnDestroy,
+  OnInit,
   Renderer2,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -18,49 +13,72 @@ import DOMPurify from 'dompurify';
 import { sanitizerConfig } from './sanitizer.cfg';
 
 @Directive({
-  selector: '[contenteditable][formControlName], [contenteditable][formControl], [contenteditable][ngModel]',
-  providers: [{
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => ReactiveContentEditable),
-    multi: true
-  }]
+  selector:
+    '[contenteditable][formControlName], [contenteditable][formControl], [contenteditable][ngModel]',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => ReactiveContentEditable),
+      multi: true,
+    },
+  ],
 })
 export class ReactiveContentEditable implements ControlValueAccessor, OnInit, OnDestroy {
   private onChange: (value: string) => void = () => {};
   private onTouched: () => void = () => {};
-  private el = inject(ElementRef<HTMLElement>);
-  private renderer = inject(Renderer2);
+
+  private readonly el = inject(ElementRef<HTMLElement>);
+  private readonly renderer = inject(Renderer2);
+
   private observer: MutationObserver | null = null;
+  private isWritingFromModel = false;
+  private lastEmittedValue = '';
 
   ngOnInit(): void {
     this.setupMutationObserver();
   }
 
-  writeValue (value: string): void {
+  writeValue(value: string): void {
     const sanitized = this.sanitizeHtml(value || '');
-    this.renderer.setProperty(this.el.nativeElement, 'innerHTML', sanitized || '');
+    this.isWritingFromModel = true;
+    try {
+      this.renderer.setProperty(this.el.nativeElement, 'innerHTML', sanitized);
+      this.lastEmittedValue = sanitized;
+    } finally {
+      queueMicrotask(() => {
+        this.isWritingFromModel = false;
+      });
+    }
   }
 
-  registerOnChange (fn: (value: string) => void): void {
+  registerOnChange(fn: (value: string) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched (fn: () => void): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 
+  setDisabledState(isDisabled: boolean): void {
+    this.renderer.setAttribute(
+      this.el.nativeElement,
+      'contenteditable',
+      isDisabled ? 'false' : 'true'
+    );
+  }
+
   @HostListener('input')
-  onInput (): void {
+  onInput(): void {
     this.updateModel();
   }
 
   @HostListener('blur')
-  onBlur (): void {
+  onBlur(): void {
     this.onTouched();
   }
 
   @HostListener('paste', ['$event'])
-  onPaste (event: ClipboardEvent): void {
+  onPaste(event: ClipboardEvent): void {
     event.preventDefault();
 
     const plainText = event.clipboardData?.getData('text/plain') || '';
@@ -75,41 +93,56 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
     range.insertNode(textNode);
 
     range.setStartAfter(textNode);
+    range.collapse(true);
     selection.removeAllRanges();
     selection.addRange(range);
 
-    const value = this.el.nativeElement.innerHTML;
-    this.onChange(value);
+    this.updateModel();
   }
 
   private updateModel(): void {
+    if (this.isWritingFromModel) return;
+
     const value = this.el.nativeElement.innerHTML;
+    if (value === this.lastEmittedValue) return;
+
+    this.lastEmittedValue = value;
     this.onChange(value);
   }
 
   private setupMutationObserver(): void {
     this.observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList' || mutation.type === 'characterData') {
-          this.updateModel();
-        }
+      const hasContentChanges = mutations.some((m) => {
+        if (m.type === 'characterData') return true;
+        if (m.type !== 'childList') return false;
+
+        const changedNodes = [...m.addedNodes, ...m.removedNodes];
+        return changedNodes.some(
+          (node) =>
+            node.nodeType !== Node.ELEMENT_NODE ||
+            !(node as HTMLElement).matches('span[data-has-tooltip]')
+        );
       });
+
+      if (hasContentChanges) {
+        this.updateModel();
+      }
     });
 
     this.observer.observe(this.el.nativeElement, {
       childList: true,
       subtree: true,
-      characterData: true
+      characterData: true,
     });
   }
+
 
   private sanitizeHtml(html: string): string {
     return DOMPurify.sanitize(html, sanitizerConfig);
   }
 
   ngOnDestroy(): void {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
+    this.observer?.disconnect();
+    this.observer = null;
   }
 }

@@ -1,44 +1,40 @@
-import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
-import { ArticleService, IArticle } from '../../services';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { PreloaderService, Toolbar, ArticleDeleteButton, ArticleEditButton } from '../../components';
-import { finalize } from 'rxjs';
+import { finalize, Observable, take, tap } from 'rxjs';
+import { ArticleService, IArticle } from '../../services';
+import {
+  ArticleDeleteButton,
+  ArticleEditButton,
+  PreloaderService,
+  Toolbar,
+} from '../../components';
 
 @Component({
   selector: 'app-list',
-  imports: [
-    RouterLink, Toolbar,
-    ArticleDeleteButton,
-    ArticleEditButton,
-  ],
+  imports: [RouterLink, Toolbar, ArticleDeleteButton, ArticleEditButton],
   templateUrl: './list.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class List implements OnInit {
-  articles: IArticle[] = [];
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
-  private readonly changeDetector = inject(ChangeDetectorRef);
-  initialized = signal(false);
 
-  ngOnInit () {
-    this.loadArticles();
+  readonly articles = signal<IArticle[]>([]);
+  readonly initialized = signal(false);
+
+  ngOnInit(): void {
+    this.loadArticles().subscribe();
   }
 
-  loadArticles () {
+  loadArticles(): Observable<IArticle[]> {
     this.preloader.show();
-    const result = this.articleService.getList().pipe(
-      finalize(() => this.preloader.hide()),
-    )
-
-    const subscription = result.subscribe({
-      next: (data) => {
-        this.articles = data;
-        this.changeDetector.markForCheck();
+    return this.articleService.getList().pipe(
+      take(1),
+      tap((data) => {
+        this.articles.set(data);
         this.initialized.set(true);
-      },
-      complete: () => subscription.unsubscribe(),
-    });
-
-    return result;
+      }),
+      finalize(() => this.preloader.hide())
+    );
   }
 }
