@@ -18,22 +18,23 @@ import { TooltipService } from './tooltip.service';
           <button
                   type="button"
                   class="edit-button"
-                  title="Редактировать подсказку"
-                  aria-label="Редактировать подсказку"
+                  title="Редактировать аннотацию"
+                  aria-label="Редактировать аннотацию"
                   (click)="onEdit()"
           >✎</button>
           <button
                   type="button"
                   class="edit-button"
-                  title="Удалить подсказку"
-                  aria-label="Удалить подсказку"
+                  title="Удалить аннотацию"
+                  aria-label="Удалить аннотацию"
                   (click)="onDelete()"
           >⌧</button>
           @if (state().showCloseButton) {
           <button
             type="button"
             class="close-button"
-            aria-label="Закрыть подсказку"
+            title="Закрыть аннотацию"
+            aria-label="Закрыть аннотацию"
             (click)="onClose()"
           >×</button>
           }
