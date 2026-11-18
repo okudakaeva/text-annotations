@@ -1,7 +1,7 @@
 .tooltip {
   position: fixed;
   background: #000;
-  padding: var(--form-padding-v) 20px var(--form-padding-v) var(--form-padding-h);
+  padding: var(--form-padding-v) calc(var(--form-padding-h) + 12px) var(--form-padding-v) var(--form-padding-h);
   color: #fff;
   border-radius: 5px;
   z-index: 100;
@@ -21,13 +21,13 @@
   .close-button {
     background: transparent;
     color: #fff;
-    padding: 2px 5px;
+    padding: 2px var(--form-padding-v);
     position: absolute;
     border: 0;
-    top: 3px;
     line-height: 17px;
     cursor: pointer;
-    right: 4px;
     font-size: 16px;
+    right: 2px;
+    top: 2px;
   }
 }
