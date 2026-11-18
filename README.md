@@ -40,7 +40,7 @@ https://okudakaeva.github.io/text-annotations/
 
 ```bash
 # 1. Клонируйте репозиторий и перейдите в папку проекта
-git clone https://github.com
+git clone https://github.com/okudakaeva/text-annotations
 cd text-annotations
 
 # 2. Установите зависимости
