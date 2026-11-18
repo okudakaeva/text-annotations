@@ -122,7 +122,7 @@ export class ArticleEdit implements OnDestroy {
     this.annotationButtonService.processSelection(range);
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy (): void {
     const tempId = this.tempId();
     if (tempId && !this.isSaved) {
       this.annotationsService.deleteByArticleId(tempId);

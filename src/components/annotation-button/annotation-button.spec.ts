@@ -6,12 +6,15 @@ import { vi } from 'vitest';
 import { AnnotationsService } from '../../services';
 import { DialogService } from '../dialog/dialog.service';
 import { AnnotationButton } from './annotation-button';
+import { AnnotationButtonService } from './annotation-button.service';
 
 @Component({
   selector: 'app-test-host',
   imports: [AnnotationButton],
   template: `
-    <p id="target">Привет, мир аннотаций!</p>
+    <div id="content">
+      <p id="target">Привет, мир аннотаций!</p>
+    </div>
     <app-annotation-button/>
   `,
 })
@@ -21,6 +24,7 @@ class TestHostComponent {
 describe('AnnotationButton', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let dialogService: DialogService;
+  let buttonService: AnnotationButtonService;
   const annotationsServiceMock = {
     createOrUpdate: vi.fn((annotation) => of(annotation)),
   };
@@ -48,6 +52,9 @@ describe('AnnotationButton', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
+    buttonService = TestBed.inject(AnnotationButtonService);
+    buttonService.position.set({ x: 100, y: 100, visible: true });
+    fixture.detectChanges();
     dialogService = TestBed.inject(DialogService);
     await fixture.whenStable();
   });
@@ -140,4 +147,43 @@ describe('AnnotationButton', () => {
     expect(mark?.hasAttribute('data-no-tooltip')).toBe(false);
     expect(document.querySelector('app-annotation-dialog')).toBeNull();
   });
+
+  it('должен корректно оборачивать выделение через границу абзацев отдельными <mark> без поломки DOM', async () => {
+    const hostEl = fixture.nativeElement as HTMLElement;
+    const contentEl = hostEl.querySelector('#content') as HTMLElement;
+    contentEl.innerHTML = `
+      <p id="p1">Первый абзац</p>
+      <p id="p2">Второй абзац</p>
+    `;
+
+    const p1Text = contentEl.querySelector('#p1')!.firstChild as Text;
+    const p2Text = contentEl.querySelector('#p2')!.firstChild as Text;
+
+    const range = document.createRange();
+    range.setStart(p1Text, 7); // "абзац"
+    range.setEnd(p2Text, 6);   // "Второй"
+
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    const button = hostEl.querySelector('app-annotation-button button') as HTMLButtonElement;
+    button.click();
+    await fixture.whenStable();
+    await Promise.resolve();
+
+    const p1Marks = contentEl.querySelectorAll('#p1 mark[data-annotation-id]');
+    const p2Marks = contentEl.querySelectorAll('#p2 mark[data-annotation-id]');
+
+    expect(p1Marks.length).toBe(1);
+    expect(p2Marks.length).toBe(1);
+    expect(p1Marks[0].textContent).toBe('абзац');
+    expect(p2Marks[0].textContent).toBe('Второй');
+    expect(p1Marks[0].getAttribute('data-annotation-id')).toBe(
+      p2Marks[0].getAttribute('data-annotation-id')
+    );
+    expect(contentEl.querySelector('mark p')).toBeNull();
+  });
+
+
 });
