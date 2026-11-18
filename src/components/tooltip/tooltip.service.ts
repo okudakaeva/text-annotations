@@ -1,6 +1,8 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AnnotationsService } from '../../services';
+import { AnnotationsService, IAnnotation } from '../../services';
+import { DialogService } from '../dialog/dialog.service';
+import { AnnotationDialog } from '../annotation-dialog/annotation-dialog';
 
 export interface TooltipState {
   annotationId: string | null;
@@ -23,6 +25,7 @@ const initialTooltipState: TooltipState = {
 @Injectable({ providedIn: 'root' })
 export class TooltipService {
   private readonly annotationsService = inject(AnnotationsService);
+  private readonly dialogService = inject(DialogService);
   private requestCounter = 0;
 
   readonly state = signal<TooltipState>(initialTooltipState);
@@ -68,6 +71,80 @@ export class TooltipService {
     this.state.update((prev) =>
       prev.isVisible ? { ...prev, isVisible: false, annotationId: null } : prev
     );
+  }
+
+  async editCurrent (): Promise<void> {
+    const annotationId = this.state().annotationId;
+    if (!annotationId) {
+      return;
+    }
+
+    this.hide();
+
+    const stored = await firstValueFrom(
+      this.annotationsService.getAnnotation(annotationId)
+    );
+    if (!stored) {
+      return;
+    }
+
+    const articleId = (stored as IAnnotation & { articleId?: string }).articleId ?? '';
+
+    this.dialogService.open(AnnotationDialog, {
+      bindings: {
+        annotation: stored,
+        onSaveAnnotation: async (updated: IAnnotation) => {
+          await firstValueFrom(
+            this.annotationsService.createOrUpdate(updated, articleId)
+          );
+        },
+        onDeleteAnnotation: async () => {
+          await this.deleteById(annotationId);
+        },
+      },
+    });
+  }
+
+  async deleteCurrent (): Promise<void> {
+    const annotationId = this.state().annotationId;
+    if (!annotationId) {
+      return;
+    }
+
+    this.hide();
+    await this.deleteById(annotationId);
+  }
+
+  private async deleteById (annotationId: string): Promise<void> {
+    await firstValueFrom(this.annotationsService.deleteAnnotation(annotationId));
+
+    const marks = document.querySelectorAll<HTMLElement>(
+      `mark[data-annotation-id="${ annotationId }"]`
+    );
+    const parents = new Set<Node>();
+
+    marks.forEach((mark) => {
+      mark.querySelectorAll('span[data-has-tooltip]').forEach((btn) => btn.remove());
+
+      const parent = mark.parentNode;
+      if (!parent) {
+        return;
+      }
+
+      parents.add(parent);
+
+      while (mark.firstChild) {
+        parent.insertBefore(mark.firstChild, mark);
+      }
+      parent.removeChild(mark);
+    });
+
+    parents.forEach((parent) => parent.normalize());
+
+    const firstElement = Array.from(parents).find(
+      (node): node is Element => node instanceof Element
+    );
+    firstElement?.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
   private measureTooltipSize (text: string): Promise<{ width: number; height: number }> {

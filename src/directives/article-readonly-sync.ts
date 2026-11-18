@@ -1,10 +1,4 @@
-import {
-  AfterViewInit,
-  Directive, ElementRef,
-  inject,
-  input,
-  OnDestroy,
-} from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ArticleService, IArticle } from '../services';
 
@@ -57,7 +51,6 @@ export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
     });
   }
 
-
   private hasRelevantMutations (mutations: MutationRecord[]): boolean {
     return mutations.some((mutation) => {
       if (mutation.type === 'attributes') {
@@ -72,9 +65,7 @@ export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
         }
         const element = node as HTMLElement;
 
-        if (
-          element.matches('span[data-has-tooltip], span[data-delete-annotation]')
-        ) {
+        if (element.matches('span[data-has-tooltip]')) {
           return false;
         }
 
@@ -90,9 +81,7 @@ export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
   private getCleanHtml (): string {
     const clone = this.el.nativeElement.cloneNode(true) as HTMLElement;
 
-    clone
-      .querySelectorAll('span[data-has-tooltip], span[data-delete-annotation]')
-      .forEach((el) => el.remove());
+    clone.querySelectorAll('span[data-has-tooltip]').forEach((el) => el.remove());
 
     clone.querySelectorAll('mark[data-no-tooltip]').forEach((mark) => {
       const parent = mark.parentNode;

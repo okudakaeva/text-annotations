@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, effect, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Toolbar } from '../toolbar/toolbar';
-import { Button } from '../button/button';
 import { IAnnotation } from '../../services';
+import { Button } from '../button/button';
+import { Toolbar } from '../toolbar/toolbar';
 
 const DEFAULT_COLOR = '#ffffe0';
 
@@ -12,7 +12,7 @@ const DEFAULT_COLOR = '#ffffe0';
   template: `
     <form [formGroup]="annotationForm" (ngSubmit)="createAnnotation()">
       <div class="annotation-dialog">
-        <h3>Создание аннотации</h3>
+        <h3>{{ dialogTitle() }}</h3>
         <textarea
           formControlName="text"
           id="annotation-text"
@@ -37,7 +37,16 @@ const DEFAULT_COLOR = '#ffffe0';
           <option value="#ffe0b2"></option>
         </datalist>
         <app-toolbar>
-          <div></div>
+          <div>
+            @if (isEditMode() && onDeleteAnnotation()) {
+            <app-button
+              title="Удалить"
+              theme="dark"
+              type="button"
+              (clickAction)="deleteAnnotation()"
+            />
+            }
+          </div>
           <div class="actions">
             <app-button
               title="Отмена"
@@ -45,7 +54,7 @@ const DEFAULT_COLOR = '#ffffe0';
               type="button"
               (clickAction)="closeDialog()"
             />
-            <app-button title="Создать"/>
+            <app-button [title]="submitTitle()"/>
           </div>
         </app-toolbar>
       </div>
@@ -56,11 +65,20 @@ const DEFAULT_COLOR = '#ffffe0';
 })
 export class AnnotationDialog {
   readonly annotation = input.required<IAnnotation>();
-  readonly onSaveAnnotation = input.required<(a: IAnnotation) => void>();
+  readonly onSaveAnnotation = input.required<(a: IAnnotation) => Promise<void> | void>();
+  readonly onDeleteAnnotation = input<(() => Promise<void> | void) | undefined>(undefined);
   readonly onCloseDialog = input<() => void>(() => {
   });
   readonly okEvent = output<void>();
   readonly cancelEvent = output<void>();
+
+  readonly isEditMode = computed(() => Boolean(this.annotation().text?.trim()));
+  readonly dialogTitle = computed(() =>
+    this.isEditMode() ? 'Редактирование аннотации' : 'Создание аннотации'
+  );
+  readonly submitTitle = computed(() =>
+    this.isEditMode() ? 'Сохранить' : 'Создать'
+  );
 
   readonly annotationForm = new FormGroup({
     text: new FormControl('', [Validators.required, Validators.maxLength(200)]),
@@ -90,6 +108,16 @@ export class AnnotationDialog {
     };
 
     await this.onSaveAnnotation()(updated);
+    this.okEvent.emit();
+  }
+
+  async deleteAnnotation (): Promise<void> {
+    const deleteFn = this.onDeleteAnnotation();
+    if (!deleteFn) {
+      return;
+    }
+
+    await deleteFn();
     this.okEvent.emit();
   }
 
