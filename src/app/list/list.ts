@@ -23,6 +23,7 @@ export class List implements OnInit {
 
   loadArticles (): Observable<IArticle[]> {
     this.preloader.show();
+
     return this.articleService.getList().pipe(
       take(1),
       tap((data) => {

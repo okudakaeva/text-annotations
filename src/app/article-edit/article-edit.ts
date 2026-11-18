@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, input, viewChild, } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   AbstractControl,
@@ -48,8 +48,6 @@ export class ArticleEdit {
   private readonly annotationButtonService = inject(AnnotationButtonService);
   private readonly router = inject(Router);
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
-
-  readonly articleTextEl = viewChild<ElementRef<HTMLElement>>('articleText');
 
   readonly articleForm = new FormGroup({
     title: new FormControl('', [Validators.required, Validators.maxLength(100)]),

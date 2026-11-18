@@ -1,4 +1,10 @@
-import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, output, } from '@angular/core';
+import {
+  AfterViewInit,
+  Directive, ElementRef,
+  inject,
+  input,
+  OnDestroy,
+} from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ArticleService, IArticle } from '../services';
 
@@ -7,7 +13,6 @@ import { ArticleService, IArticle } from '../services';
 })
 export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
   readonly article = input.required<IArticle>({ alias: 'appArticleReadonlySync' });
-  readonly articleUpdated = output<IArticle>();
 
   private readonly el = inject(ElementRef<HTMLElement>);
   private readonly articleService = inject(ArticleService);
@@ -101,21 +106,5 @@ export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
     });
 
     return clone.innerHTML;
-  }
-
-  private async syncArticleText (): Promise<void> {
-    const cleanHtml = this.getCleanHtml();
-    if (cleanHtml === this.lastSavedHtml) {
-      return;
-    }
-
-    this.lastSavedHtml = cleanHtml;
-    const updated: IArticle = {
-      ...this.article(),
-      text: cleanHtml,
-    };
-
-    await firstValueFrom(this.articleService.createOrUpdate(updated));
-    this.articleUpdated.emit(updated);
   }
 }
