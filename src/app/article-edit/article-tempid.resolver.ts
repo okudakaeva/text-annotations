@@ -1,10 +1,8 @@
-import { ResolveFn } from '@angular/router';
 import { inject } from '@angular/core';
-import { ArticleService, IArticle } from '../../services';
-import { Observable, of } from 'rxjs';
+import { ResolveFn } from '@angular/router';
+import { AnnotationsService } from '../../services';
 
-export const articleTempIdResolver: ResolveFn<Observable<IArticle['id']>> = () => {
-  const service = inject(ArticleService);
-
-  return of(service.generateId());
+export const articleTempIdResolver: ResolveFn<string> = () => {
+  inject(AnnotationsService).clear();
+  return Math.random().toString(36).substring(2, 9);
 };

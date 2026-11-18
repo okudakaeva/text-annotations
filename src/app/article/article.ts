@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  inject,
-  input,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, linkedSignal, } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   AnnotationButton,
@@ -14,15 +8,8 @@ import {
   Toolbar,
   TooltipContainer,
 } from '../../components';
-import {
-  SafeHtmlWithAnnotationsPipe,
-  SelectionTracker,
-} from '../../directives';
-import {
-  AnnotationsRenderer,
-  IAnnotationList,
-  IArticle,
-} from '../../services';
+import { ArticleReadonlySync, SafeHtmlWithAnnotationsPipe, SelectionTracker, } from '../../directives';
+import { AnnotationsRenderer, AnnotationsService, IArticle, } from '../../services';
 
 @Component({
   selector: 'app-article',
@@ -34,25 +21,27 @@ import {
     TooltipContainer,
     SafeHtmlWithAnnotationsPipe,
     SelectionTracker,
+    ArticleReadonlySync,
     AnnotationButton,
   ],
   templateUrl: './article.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Article {
-  readonly article = input.required<IArticle>();
-  readonly annotations = input<IAnnotationList>(new Map());
-
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
   private readonly annotationButtonService = inject(AnnotationButtonService);
+  private readonly annotationsService = inject(AnnotationsService);
 
-  constructor() {
+  readonly article = input.required<IArticle>();
+  readonly currentArticle = linkedSignal(() => this.article());
+
+  constructor () {
     effect(() => {
-      this.annotationsRenderer.initData(this.annotations());
+      this.annotationsRenderer.initData(this.annotationsService.annotations());
     });
   }
 
-  onSelectionDetected(range: Range | null): void {
+  onSelectionDetected (range: Range | null): void {
     this.annotationButtonService.processSelection(range);
   }
 }

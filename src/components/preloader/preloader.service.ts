@@ -7,11 +7,11 @@ export class PreloaderService {
   private readonly activeRequests = signal(0);
   readonly isShown = computed(() => this.activeRequests() > 0);
 
-  show(): void {
+  show (): void {
     this.activeRequests.update((count) => count + 1);
   }
 
-  hide(): void {
+  hide (): void {
     this.activeRequests.update((count) => Math.max(0, count - 1));
   }
 }

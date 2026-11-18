@@ -27,7 +27,7 @@ export class TooltipService {
 
   readonly state = signal<TooltipState>(initialTooltipState);
 
-  async showTooltip(
+  async showTooltip (
     annotationId: string,
     _triggerElement: HTMLElement,
     annotationRect: DOMRect
@@ -41,7 +41,7 @@ export class TooltipService {
       return;
     }
 
-    const size = await this.getTooltipSize(annotation.text);
+    const size = await this.measureTooltipSize(annotation.text);
     if (currentRequest !== this.requestCounter) {
       return;
     }
@@ -57,41 +57,63 @@ export class TooltipService {
     });
   }
 
-  hide(): void {
+  hide (): void {
     this.requestCounter++;
     this.state.update((prev) =>
       prev.isVisible ? { ...prev, isVisible: false, annotationId: null } : prev
     );
   }
 
-  private getTooltipSize(text: string): Promise<{ width: number; height: number }> {
+  private measureTooltipSize (text: string): Promise<{ width: number; height: number }> {
     return new Promise((resolve) => {
-      const tempContainer = document.createElement('div');
-      Object.assign(tempContainer.style, {
+      const tooltipEl = document.querySelector<HTMLElement>('app-tooltip .tooltip');
+
+      if (tooltipEl) {
+        const clone = tooltipEl.cloneNode(true) as HTMLElement;
+        clone.classList.remove('visible');
+        Object.assign(clone.style, {
+          left: '-10000px',
+          top: '-10000px',
+          visibility: 'hidden',
+          transition: 'none',
+        });
+
+        const contentEl = clone.querySelector('.tooltip-content');
+        if (contentEl) {
+          contentEl.textContent = text;
+        }
+
+        document.body.appendChild(clone);
+        requestAnimationFrame(() => {
+          const rect = clone.getBoundingClientRect();
+          clone.remove();
+          resolve({ width: Math.ceil(rect.width), height: Math.ceil(rect.height) });
+        });
+        return;
+      }
+
+      const fallback = document.createElement('div');
+      Object.assign(fallback.style, {
         position: 'fixed',
         left: '-10000px',
         top: '-10000px',
-        opacity: '0',
-        pointerEvents: 'none',
         visibility: 'hidden',
         fontSize: '14px',
         maxWidth: '500px',
         whiteSpace: 'pre-wrap',
       });
-
-      tempContainer.textContent = text;
-      document.body.appendChild(tempContainer);
+      fallback.textContent = text;
+      document.body.appendChild(fallback);
 
       requestAnimationFrame(() => {
-        const width = tempContainer.offsetWidth + 24;
-        const height = tempContainer.offsetHeight + 12;
-        tempContainer.remove();
-        resolve({ width, height });
+        const rect = fallback.getBoundingClientRect();
+        fallback.remove();
+        resolve({ width: Math.ceil(rect.width), height: Math.ceil(rect.height) });
       });
     });
   }
 
-  private calculatePosition(
+  private calculatePosition (
     annotationRect: DOMRect,
     tooltipSize: { width: number; height: number }
   ): { x: number; y: number } {

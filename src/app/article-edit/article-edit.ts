@@ -2,10 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
-  ElementRef,
   inject,
   input,
-  viewChild,
+  OnDestroy,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -27,12 +26,7 @@ import {
   Toolbar,
   TooltipContainer,
 } from '../../components';
-import {
-  AnnotationsRenderer,
-  ArticleService,
-  IAnnotationList,
-  IArticle,
-} from '../../services';
+import { AnnotationsRenderer, AnnotationsService, ArticleService, IArticle, } from '../../services';
 
 @Component({
   selector: 'app-article-edit',
@@ -51,31 +45,30 @@ import {
   styleUrl: './article-edit.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEdit {
+export class ArticleEdit implements OnDestroy {
   readonly article = input<IArticle>();
   readonly tempId = input<IArticle['id'] | null>(null);
-  readonly annotations = input<IAnnotationList>(new Map());
+  private isSaved = false;
 
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
+  private readonly annotationsService = inject(AnnotationsService);
   private readonly annotationButtonService = inject(AnnotationButtonService);
   private readonly router = inject(Router);
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
-
-  readonly articleTextEl = viewChild<ElementRef<HTMLElement>>('articleText');
 
   readonly articleForm = new FormGroup({
     title: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     text: new FormControl('', [() => this.textRequiredValidator()]),
   });
 
-  constructor() {
+  constructor () {
     effect(() => {
-      const currentAnnotations = this.annotations();
+      this.annotationsRenderer.initData(this.annotationsService.annotations());
+    });
+
+    effect(() => {
       const currentArticle = this.article();
-
-      this.annotationsRenderer.initData(currentAnnotations);
-
       if (currentArticle) {
         this.articleForm.patchValue({
           title: currentArticle.title || '',
@@ -85,23 +78,23 @@ export class ArticleEdit {
     });
   }
 
-  isTextEmpty(): boolean {
+  isTextEmpty (): boolean {
     const html = this.articleForm?.get('text')?.value ?? '';
     const plainText = html.replace(/<[^>]*>/g, '').trim();
     return plainText.length === 0;
   }
 
-  textRequiredValidator(control?: AbstractControl): ValidationErrors | null {
+  textRequiredValidator (control?: AbstractControl): ValidationErrors | null {
     const html = (control?.value ?? this.articleForm?.get('text')?.value ?? '') as string;
     const plainText = html.replace(/<[^>]*>/g, '').trim();
     return plainText.length === 0 ? { required: true } : null;
   }
 
-  isCreationMode(): boolean {
+  isCreationMode (): boolean {
     return Boolean(this.tempId());
   }
 
-  async saveArticle(): Promise<void> {
+  async saveArticle (): Promise<void> {
     if (this.articleForm.invalid) {
       this.articleForm.markAllAsTouched();
       return;
@@ -118,13 +111,22 @@ export class ArticleEdit {
       const saved = await firstValueFrom(
         this.articleService.createOrUpdate(data, this.tempId())
       );
+      this.isSaved = true;
       await this.router.navigate(['/article', saved.id]);
     } finally {
       this.preloader.hide();
     }
   }
 
-  onSelectionDetected(range: Range | null): void {
+  onSelectionDetected (range: Range | null): void {
     this.annotationButtonService.processSelection(range);
+  }
+
+  ngOnDestroy (): void {
+    const tempId = this.tempId();
+    if (tempId && !this.isSaved) {
+      this.annotationsService.deleteByArticleId(tempId);
+      this.annotationsService.clear();
+    }
   }
 }

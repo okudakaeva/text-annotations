@@ -1,10 +1,10 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, inject } from '@angular/core';
+import { ApplicationConfig, inject, provideBrowserGlobalErrorListeners } from '@angular/core';
 import {
   provideRouter,
   Router,
   withComponentInputBinding,
   withInMemoryScrolling,
-  withNavigationErrorHandler
+  withNavigationErrorHandler,
 } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -18,8 +18,8 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({ scrollPositionRestoration: 'top' }),
       withNavigationErrorHandler(() => {
         const router = inject(Router);
-        router.navigate(['/not-found']);
-      }),
+        router.navigate(['/not-found'], { skipLocationChange: true });
+      })
     ),
-  ]
+  ],
 };

@@ -13,4 +13,5 @@ import { Toolbar } from '../toolbar/toolbar';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NotFound {}
+export class NotFound {
+}

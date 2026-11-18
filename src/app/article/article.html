@@ -1,9 +1,10 @@
 <div appTooltipContainer>
-  <h1>{{  article().title }}</h1>
+  <h1>{{  currentArticle().title }}</h1>
   <div
-    [innerHTML]="article().text | safeHtmlWithAnnotations"
     appSelectionTracker
+    [appArticleReadonlySync]="currentArticle()"
     (selectionDetected)="onSelectionDetected($event)"
+    [innerHTML]="article().text | safeHtmlWithAnnotations"
   ></div>
 </div>
 <app-toolbar>
@@ -13,8 +14,8 @@
   </div>
 
   <div class="actions">
-    <app-article-delete-button [article]="article()" />
-    <app-article-edit-button [article]="article()" />
+    <app-article-delete-button [article]="currentArticle()"/>
+    <app-article-edit-button [article]="currentArticle()"/>
   </div>
 </app-toolbar>
 <app-annotation-button/>

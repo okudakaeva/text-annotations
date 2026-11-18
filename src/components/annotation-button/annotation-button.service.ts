@@ -4,14 +4,12 @@ export interface AnnotationButtonPosition {
   x: number;
   y: number;
   visible: boolean;
-  range: Range | null;
 }
 
 export const annotationButtonStartPosition: AnnotationButtonPosition = {
   x: -1000,
   y: -1000,
   visible: false,
-  range: null,
 };
 
 const BUTTON_SIZE = 36;
@@ -23,7 +21,7 @@ const VIEWPORT_PADDING = 8;
 export class AnnotationButtonService {
   readonly position = signal<AnnotationButtonPosition>(annotationButtonStartPosition);
 
-  processSelection(range: Range | null): void {
+  processSelection (range: Range | null): void {
     if (!range) {
       this.hideButton();
       return;
@@ -67,11 +65,10 @@ export class AnnotationButtonService {
       x: clampedX,
       y: clampedY,
       visible: true,
-      range,
     });
   }
 
-  hideButton(): void {
+  hideButton (): void {
     this.position.set(annotationButtonStartPosition);
   }
 }

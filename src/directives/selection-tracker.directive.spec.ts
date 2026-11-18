@@ -39,7 +39,7 @@ describe('SelectionTracker', () => {
     window.getSelection()?.removeAllRanges();
   });
 
-  function selectTextInNode(node: Node, startOffset = 0, endOffset = 6): Range {
+  function selectTextInNode (node: Node, startOffset = 0, endOffset = 6): Range {
     const textNode = node.firstChild!;
     const range = document.createRange();
     range.setStart(textNode, startOffset);

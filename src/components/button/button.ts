@@ -26,7 +26,7 @@ export class Button {
   readonly disabled = input<boolean>(false);
   readonly clickAction = output<MouseEvent>();
 
-  onButtonClick(e: MouseEvent): void {
+  onButtonClick (e: MouseEvent): void {
     if (!this.disabled()) {
       this.clickAction.emit(e);
     }

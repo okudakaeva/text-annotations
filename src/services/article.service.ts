@@ -1,7 +1,8 @@
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AnnotationsService } from './annotations.service';
 import { CommonStorage } from './common-storage';
-import { Injectable } from '@angular/core';
-import { delay, map, Observable, of } from 'rxjs';
-import { HttpResponse } from '@angular/common/http';
+import { mockHttpResponse } from './mock-http';
 
 const keyPrefix = 'article_';
 
@@ -13,9 +14,11 @@ export interface IArticle {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ArticleService {
+  private readonly annotationsService = inject(AnnotationsService);
+
   getList (): Observable<IArticle[]> {
     const list: IArticle[] = [];
     for (let i = 0; i < CommonStorage.length; i++) {
@@ -28,49 +31,47 @@ export class ArticleService {
 
     list.sort((a, b) => b.timestamp - a.timestamp);
 
-    return this.wrappedResponse({ body: list }) as Observable<IArticle[]>;
+    return mockHttpResponse({ body: list });
   }
 
-  getArticle (id: IArticle['id']): Observable<IArticle | Observable<never>> {
-    const article = CommonStorage.getItem(`${ keyPrefix }${ id }`);
-    const response = article ? { body: JSON.parse(article) }:{ status: 404, statusText: 'Not Found', body: null };
+  getArticle (id: IArticle['id']): Observable<IArticle> {
+    const raw = CommonStorage.getItem(`${ keyPrefix }${ id }`);
 
-    return this.wrappedResponse(response);
+    if (!raw) {
+      return mockHttpResponse<IArticle>({
+        status: 404,
+        statusText: 'Not Found',
+        body: null as unknown as IArticle,
+      });
+    }
+
+    return mockHttpResponse<IArticle>({ body: JSON.parse(raw) });
   }
 
-  createOrUpdate (article: Partial<IArticle>, tempId: IArticle['id'] | null = null): Observable<IArticle> {
-    article.id = article.id ?? tempId ?? this.generateId();
-    article.timestamp = article.timestamp ?? Date.now();
+  createOrUpdate (
+    article: Partial<IArticle>,
+    tempId: IArticle['id'] | null = null
+  ): Observable<IArticle> {
+    const savedArticle: IArticle = {
+      id: article.id ?? tempId ?? this.generateId(),
+      title: article.title ?? '',
+      text: article.text ?? '',
+      timestamp: article.timestamp ?? Date.now(),
+    };
 
-    CommonStorage.setItem(`${ keyPrefix }${ article.id }`, JSON.stringify(article));
+    CommonStorage.setItem(`${ keyPrefix }${ savedArticle.id }`, JSON.stringify(savedArticle));
 
-    return this.wrappedResponse({ body: article }) as Observable<IArticle>;
+    return mockHttpResponse({ body: savedArticle });
   }
 
   deleteArticle (id: IArticle['id']): Observable<null> {
     CommonStorage.removeItem(`${ keyPrefix }${ id }`);
+    this.annotationsService.deleteByArticleId(id);
 
-    return this.wrappedResponse({ body: null }) as Observable<null>;
+    return mockHttpResponse({ body: null });
   }
 
-  private wrappedResponse<T> (value: { body: T, [key: string]: any }): Observable<T | null | Observable<never>> {
-    return of(new HttpResponse({
-      status: 200,
-      ...value
-    }))
-      .pipe(
-        delay(100),
-        map((response: HttpResponse<T>) => {
-          if (response.status === 200) {
-            return response.body;
-          } else {
-            throw response;
-          }
-        }),
-      );
-  }
-
-  generateId(): string {
+  generateId (): string {
     return Math.random().toString(36).substring(2, 9);
   }
 }

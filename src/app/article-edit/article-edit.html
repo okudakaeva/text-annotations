@@ -1,7 +1,7 @@
 <form [formGroup]="articleForm" (ngSubmit)="saveArticle()">
   <div class="article-form">
     <input id="article-title" type="text" formControlName="title" placeholder="Придумайте заголовок">
-    <div #articleText appTooltipContainer
+    <div appTooltipContainer
          id='article-text'
          contenteditable="true"
          formControlName="text"
@@ -15,7 +15,7 @@
     <a routerLink="/">К списку статей</a>
     <div class="actions">
       @if (!isCreationMode()) {
-        <app-article-delete-button [article]="article()!" />
+      <app-article-delete-button [article]="article()!" />
       }
       <app-button title="Сохранить"/>
     </div>

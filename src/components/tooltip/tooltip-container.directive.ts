@@ -29,11 +29,11 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     this.triggerElements = null;
   }
 
-  private getMarks(): HTMLElement[] {
+  private getMarks (): HTMLElement[] {
     return this.el.nativeElement.querySelectorAll(markSelector);
   }
 
-  private setupDomObserver(): void {
+  private setupDomObserver (): void {
     this.observer = new MutationObserver((mutations) => {
       let needsReinit = false;
 
@@ -43,7 +43,9 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
           break;
         }
 
-        if (mutation.type !== 'childList') continue;
+        if (mutation.type !== 'childList') {
+          continue;
+        }
 
         for (const node of mutation.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
@@ -76,7 +78,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     this.connect();
   }
 
-  private connect(): void {
+  private connect (): void {
     this.observer?.observe(this.el.nativeElement, {
       childList: true,
       subtree: true,
@@ -85,7 +87,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     });
   }
 
-  private disconnect() {
+  private disconnect () {
     if (this.observer) {
       this.observer.disconnect();
     }
@@ -159,9 +161,11 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     this.triggerHandlers!.set(document, selectionHandler);
   }
 
-  private isClickInsideTooltipOrTrigger(event: MouseEvent): boolean {
+  private isClickInsideTooltipOrTrigger (event: MouseEvent): boolean {
     const target = event.target as HTMLElement | null;
-    if (!target) return false;
+    if (!target) {
+      return false;
+    }
 
     if (target.closest('app-tooltip')) {
       return true;
