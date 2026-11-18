@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  OnDestroy,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   AbstractControl,
@@ -38,9 +45,10 @@ import { AnnotationsRenderer, AnnotationsService, ArticleService, IArticle, } fr
   styleUrl: './article-edit.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleEdit {
+export class ArticleEdit implements OnDestroy {
   readonly article = input<IArticle>();
   readonly tempId = input<IArticle['id'] | null>(null);
+  private isSaved = false;
 
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
@@ -103,6 +111,7 @@ export class ArticleEdit {
       const saved = await firstValueFrom(
         this.articleService.createOrUpdate(data, this.tempId())
       );
+      this.isSaved = true;
       await this.router.navigate(['/article', saved.id]);
     } finally {
       this.preloader.hide();
@@ -111,5 +120,13 @@ export class ArticleEdit {
 
   onSelectionDetected (range: Range | null): void {
     this.annotationButtonService.processSelection(range);
+  }
+
+  ngOnDestroy(): void {
+    const tempId = this.tempId();
+    if (tempId && !this.isSaved) {
+      this.annotationsService.deleteByArticleId(tempId);
+      this.annotationsService.clear();
+    }
   }
 }

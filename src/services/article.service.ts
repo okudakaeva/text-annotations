@@ -1,7 +1,8 @@
 import { CommonStorage } from './common-storage';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay, map, Observable, of } from 'rxjs';
 import { HttpResponse } from '@angular/common/http';
+import { AnnotationsService } from './annotations.service';
 
 const keyPrefix = 'article_';
 
@@ -16,6 +17,8 @@ export interface IArticle {
   providedIn: 'root'
 })
 export class ArticleService {
+  private readonly annotationsService = inject(AnnotationsService);
+
   getList (): Observable<IArticle[]> {
     const list: IArticle[] = [];
     for (let i = 0; i < CommonStorage.length; i++) {
@@ -49,6 +52,7 @@ export class ArticleService {
 
   deleteArticle (id: IArticle['id']): Observable<null> {
     CommonStorage.removeItem(`${ keyPrefix }${ id }`);
+    this.annotationsService.deleteByArticleId(id);
 
     return this.wrappedResponse({ body: null }) as Observable<null>;
   }

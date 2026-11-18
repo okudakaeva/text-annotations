@@ -3,7 +3,6 @@
   <div
     appSelectionTracker
     [appArticleReadonlySync]="currentArticle()"
-    (articleUpdated)="onArticleUpdated($event)"
     (selectionDetected)="onSelectionDetected($event)"
     [innerHTML]="article().text | safeHtmlWithAnnotations"
   ></div>

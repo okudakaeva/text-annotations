@@ -89,6 +89,25 @@ export class AnnotationsService {
     this._annotations.set(new Map());
   }
 
+  deleteByArticleId(articleId: IArticle['id']): void {
+    const keysToRemove: string[] = [];
+
+    for (let i = 0; i < CommonStorage.length; i++) {
+      const key = CommonStorage.key(i);
+      if (key?.startsWith(ANNOTATION_PREFIX)) {
+        const raw = CommonStorage.getItem(key);
+        if (!raw) continue;
+
+        const annotation = JSON.parse(raw);
+        if (annotation.articleId === articleId || key.startsWith(`${ANNOTATION_PREFIX}${articleId}`)) {
+          keysToRemove.push(key);
+        }
+      }
+    }
+
+    keysToRemove.forEach((key) => CommonStorage.removeItem(key));
+  }
+
   private wrappedResponse<T> (value: { body: T; [key: string]: any }): Observable<T | null | Observable<never>> {
     return of(
       new HttpResponse({

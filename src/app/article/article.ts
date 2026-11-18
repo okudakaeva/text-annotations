@@ -44,8 +44,4 @@ export class Article {
   onSelectionDetected (range: Range | null): void {
     this.annotationButtonService.processSelection(range);
   }
-
-  onArticleUpdated (updated: IArticle): void {
-    this.currentArticle.set(updated);
-  }
 }
