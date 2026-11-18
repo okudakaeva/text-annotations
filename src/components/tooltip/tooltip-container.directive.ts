@@ -5,13 +5,13 @@ const markSelector = 'mark[data-annotation-id]:not([data-no-tooltip])';
 const buttonSelector = 'span[data-has-tooltip]';
 
 @Directive({
-  selector: '[appTooltipContainer]'
+  selector: '[appTooltipContainer]',
 })
 export class TooltipContainer implements AfterViewInit, OnDestroy {
   private el = inject(ElementRef<HTMLElement>);
   private tooltipService = inject(TooltipService);
-  private triggerHandlers: WeakMap<HTMLElement | Document | Window, (event: any) => void> | null = new WeakMap<HTMLElement | Document | Window, (event: any) => void>();
-  private triggerElements: WeakMap<HTMLElement, HTMLElement> | null = new WeakMap<HTMLElement, HTMLElement>();
+  private triggerHandlers: WeakMap<HTMLElement, (event: Event) => void> | null = new WeakMap();
+  private triggerElements: WeakMap<HTMLElement, HTMLElement> | null = new WeakMap();
   private observer: MutationObserver | null = null;
   private abortCtrl = new AbortController();
 
@@ -30,7 +30,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
   }
 
   private getMarks (): HTMLElement[] {
-    return this.el.nativeElement.querySelectorAll(markSelector);
+    return Array.from(this.el.nativeElement.querySelectorAll(markSelector));
   }
 
   private setupDomObserver (): void {
@@ -87,10 +87,8 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     });
   }
 
-  private disconnect () {
-    if (this.observer) {
-      this.observer.disconnect();
-    }
+  private disconnect (): void {
+    this.observer?.disconnect();
   }
 
   private reinitializeMarks (): void {
@@ -104,7 +102,22 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     this.disconnect();
     const marks = this.getMarks();
 
-    marks.forEach((mark: HTMLElement) => {
+    const lastMarkById = new Map<string, HTMLElement>();
+    marks.forEach((mark) => {
+      const id = mark.getAttribute('data-annotation-id');
+      if (id) {
+        lastMarkById.set(id, mark);
+      }
+    });
+
+    const lastMarks = new Set(lastMarkById.values());
+
+    marks.forEach((mark) => {
+      if (!lastMarks.has(mark)) {
+        mark.querySelectorAll(buttonSelector).forEach((btn) => btn.remove());
+        return;
+      }
+
       if (this.triggerElements!.has(mark) || mark.querySelector(buttonSelector)) {
         return;
       }
@@ -124,10 +137,25 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
         }
       };
 
+      const toggleHover = (isHovered: boolean) => {
+        const annotationId = mark.getAttribute('data-annotation-id');
+        if (!annotationId) {
+          return;
+        }
+        this.el.nativeElement
+          .querySelectorAll(`mark[data-annotation-id="${ annotationId }"]`)
+          .forEach((part: HTMLElement) => part.classList.toggle('annotation-hover', isHovered));
+      };
+
+      const enterHandler = () => toggleHover(true);
+      const leaveHandler = () => toggleHover(false);
+
       this.triggerHandlers!.set(triggerEl, clickHandler);
       this.triggerElements!.set(mark, triggerEl);
 
       triggerEl.addEventListener('click', clickHandler);
+      triggerEl.addEventListener('mouseenter', enterHandler, { signal: this.abortCtrl.signal });
+      triggerEl.addEventListener('mouseleave', leaveHandler, { signal: this.abortCtrl.signal });
       mark.appendChild(triggerEl);
     });
 
@@ -138,7 +166,6 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     const scrollHandler = () => this.tooltipService.hide();
     document.addEventListener('scroll', scrollHandler, { capture: true, signal: this.abortCtrl.signal });
     window.addEventListener('scroll', scrollHandler, { capture: true, signal: this.abortCtrl.signal });
-    this.triggerHandlers!.set(document, scrollHandler);
 
     const clickHandler = (event: MouseEvent) => {
       if (!this.isClickInsideTooltipOrTrigger(event)) {
@@ -146,7 +173,6 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
       }
     };
     document.addEventListener('click', clickHandler, { capture: true, signal: this.abortCtrl.signal });
-    this.triggerHandlers!.set(document, clickHandler);
 
     const selectionHandler = () => {
       queueMicrotask(() => {
@@ -158,7 +184,6 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     };
     document.addEventListener('mouseup', selectionHandler, { capture: true, signal: this.abortCtrl.signal });
     document.addEventListener('keyup', selectionHandler, { capture: true, signal: this.abortCtrl.signal });
-    this.triggerHandlers!.set(document, selectionHandler);
   }
 
   private isClickInsideTooltipOrTrigger (event: MouseEvent): boolean {

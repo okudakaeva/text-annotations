@@ -81,8 +81,8 @@ h3 {
 mark {
   background-color: #ffffe0;
   color: inherit;
-  border-radius: 2px;
-  padding: 0 2px;
+  border-radius: 3px;
+  padding: 0 3px;
 
   span[data-has-tooltip] {
     color: inherit;
@@ -112,6 +112,13 @@ mark {
 
   &[data-no-tooltip] {
     background-color: #ffffe0;
+  }
+
+  &.annotation-hover {
+    outline-width: 1px;
+    outline-style: dashed;
+    outline-color: color-mix(in srgb, currentColor 65%, transparent);
+    outline-offset: -1px;
   }
 }
 

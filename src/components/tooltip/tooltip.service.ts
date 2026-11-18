@@ -27,7 +27,7 @@ export class TooltipService {
 
   readonly state = signal<TooltipState>(initialTooltipState);
 
-  async showTooltip(
+  async showTooltip (
     annotationId: string,
     _triggerElement: HTMLElement,
     annotationRect: DOMRect

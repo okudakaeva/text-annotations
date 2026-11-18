@@ -107,33 +107,47 @@ export class AnnotationButton {
     range: Range
   ): Array<{ node: Text; start: number; end: number }> {
     const root = range.commonAncestorContainer;
+    const nodes: Array<{ node: Text; start: number; end: number }> = [];
 
     if (root.nodeType === Node.TEXT_NODE) {
       const textNode = root as Text;
       const slice = textNode.data.slice(range.startOffset, range.endOffset);
-      return slice.trim()
-        ? [{ node: textNode, start: range.startOffset, end: range.endOffset }]
-        : [];
-    }
-
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    const result: Array<{ node: Text; start: number; end: number }> = [];
-    let current = walker.nextNode() as Text | null;
-
-    while (current) {
-      if (range.intersectsNode(current)) {
-        const start = current === range.startContainer ? range.startOffset : 0;
-        const end =
-          current === range.endContainer ? range.endOffset : current.data.length;
-
-        if (end > start && current.data.slice(start, end).trim()) {
-          result.push({ node: current, start, end });
-        }
+      if (slice.trim()) {
+        nodes.push({ node: textNode, start: range.startOffset, end: range.endOffset });
       }
-      current = walker.nextNode() as Text | null;
+    } else {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let current = walker.nextNode() as Text | null;
+
+      while (current) {
+        if (range.intersectsNode(current)) {
+          const start = current === range.startContainer ? range.startOffset : 0;
+          const end =
+            current === range.endContainer ? range.endOffset : current.data.length;
+
+          if (end > start && current.data.slice(start, end).trim()) {
+            nodes.push({ node: current, start, end });
+          }
+        }
+        current = walker.nextNode() as Text | null;
+      }
     }
 
-    return result;
+    if (nodes.length === 0) {
+      return [];
+    }
+
+    const first = nodes[0];
+    const firstSlice = first.node.data.slice(first.start, first.end);
+    const leadingSpaces = firstSlice.length - firstSlice.trimStart().length;
+    first.start += leadingSpaces;
+
+    const last = nodes[nodes.length - 1];
+    const lastSlice = last.node.data.slice(last.start, last.end);
+    const trailingSpaces = lastSlice.length - lastSlice.trimEnd().length;
+    last.end -= trailingSpaces;
+
+    return nodes.filter((item) => item.end > item.start);
   }
 
   private removeAnnotationMark (id: string): void {
