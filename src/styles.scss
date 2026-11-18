@@ -91,5 +91,33 @@ mark {
       color: #1891fa;
     }
   }
+
+  mark {
+    background-color: #ffffe0;
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 2px;
+
+    span[data-has-tooltip]::before {
+      content: '\00a0ⓘ';
+      cursor: pointer;
+      text-shadow: 0 0 1px #fff;
+      font-weight: bold;
+      color: #0b6bcb;
+    }
+
+    span[data-delete-annotation]::before {
+      content: '\00a0\1F5D1\FE0E';
+      cursor: pointer;
+      text-shadow: 0 0 1px #fff;
+      font-weight: bold;
+      color: #666;
+      transition: color .15s ease;
+    }
+
+    &[data-no-tooltip] {
+      background-color: #ffffe0;
+    }
+  }
 }
 

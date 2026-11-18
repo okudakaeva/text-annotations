@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
+  AbstractControl,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
@@ -85,16 +86,19 @@ export class ArticleEdit {
   }
 
   isTextEmpty(): boolean {
-    const text = this.articleTextEl()?.nativeElement?.textContent?.trim() ?? '';
-    return text.length === 0;
+    const html = this.articleForm?.get('text')?.value ?? '';
+    const plainText = html.replace(/<[^>]*>/g, '').trim();
+    return plainText.length === 0;
+  }
+
+  textRequiredValidator(control?: AbstractControl): ValidationErrors | null {
+    const html = (control?.value ?? this.articleForm?.get('text')?.value ?? '') as string;
+    const plainText = html.replace(/<[^>]*>/g, '').trim();
+    return plainText.length === 0 ? { required: true } : null;
   }
 
   isCreationMode(): boolean {
     return Boolean(this.tempId());
-  }
-
-  textRequiredValidator(): ValidationErrors | null {
-    return this.isTextEmpty() ? { required: true } : null;
   }
 
   async saveArticle(): Promise<void> {

@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { AnnotationsService } from '../../services';
 
 export interface TooltipState {
+  annotationId: string | null;
   text: string;
   position: { x: number; y: number };
   isVisible: boolean;
@@ -11,6 +12,7 @@ export interface TooltipState {
 }
 
 const initialTooltipState: TooltipState = {
+  annotationId: null,
   text: '',
   position: { x: 0, y: 0 },
   isVisible: false,
@@ -46,6 +48,7 @@ export class TooltipService {
 
     const position = this.calculatePosition(annotationRect, size);
     this.state.set({
+      annotationId,
       text: annotation.text,
       position,
       isVisible: true,
@@ -56,7 +59,9 @@ export class TooltipService {
 
   hide(): void {
     this.requestCounter++;
-    this.state.update((prev) => (prev.isVisible ? { ...prev, isVisible: false } : prev));
+    this.state.update((prev) =>
+      prev.isVisible ? { ...prev, isVisible: false, annotationId: null } : prev
+    );
   }
 
   private getTooltipSize(text: string): Promise<{ width: number; height: number }> {

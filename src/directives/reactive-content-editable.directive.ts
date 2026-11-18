@@ -83,19 +83,35 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
 
     const plainText = event.clipboardData?.getData('text/plain') || '';
     const selection = window.getSelection();
-
     if (!selection || selection.rangeCount === 0) return;
 
     const range = selection.getRangeAt(0);
     range.deleteContents();
 
-    const textNode = document.createTextNode(plainText);
-    range.insertNode(textNode);
+    const lines = plainText.split(/\r?\n/);
+    const fragment = document.createDocumentFragment();
+    let lastNode: Node | null = null;
 
-    range.setStartAfter(textNode);
-    range.collapse(true);
-    selection.removeAllRanges();
-    selection.addRange(range);
+    lines.forEach((line, index) => {
+      if (index > 0) {
+        const br = document.createElement('br');
+        fragment.appendChild(br);
+        lastNode = br;
+      }
+      if (line.length > 0) {
+        const textNode = document.createTextNode(line);
+        fragment.appendChild(textNode);
+        lastNode = textNode;
+      }
+    });
+
+    range.insertNode(fragment);
+    if (lastNode) {
+      range.setStartAfter(lastNode);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
 
     this.updateModel();
   }
@@ -120,7 +136,7 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
         return changedNodes.some(
           (node) =>
             node.nodeType !== Node.ELEMENT_NODE ||
-            !(node as HTMLElement).matches('span[data-has-tooltip]')
+            !(node as HTMLElement).matches('span[data-has-tooltip], span[data-delete-annotation]')
         );
       });
 

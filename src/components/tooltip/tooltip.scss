@@ -18,10 +18,10 @@
     opacity: 1;
   }
 
-  button {
+  .close-button {
     background: transparent;
     color: #fff;
-    padding: 2px 6px;
+    padding: 2px var(--form-padding-v);
     position: absolute;
     border: 0;
     right: 2px;

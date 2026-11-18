@@ -4,7 +4,7 @@ import { CommonStorage } from './common-storage';
 import { HttpResponse } from '@angular/common/http';
 import { IArticle } from './article.service';
 
-const keyPrefix = 'annotation_'
+const ANNOTATION_PREFIX = 'annotation_'
 
 export interface IAnnotation {
   id: string,
@@ -24,10 +24,10 @@ export class AnnotationsService {
     for (let i = 0; i < CommonStorage.length; i++) {
       const key = CommonStorage.key(i);
 
-      if (key?.indexOf(`${keyPrefix}`) === 0) {
+      if (key?.indexOf(`${ANNOTATION_PREFIX}`) === 0) {
         const annotation = JSON.parse(CommonStorage.getItem(key)!);
 
-        if (annotation.articleId === id || key?.indexOf(`${keyPrefix}${id}`) === 0) { // backward compatibility
+        if (annotation.articleId === id || key?.indexOf(`${ANNOTATION_PREFIX}${id}`) === 0) { // backward compatibility
           list.set(annotation.id, annotation);
         }
       }
@@ -37,19 +37,23 @@ export class AnnotationsService {
   }
 
   getAnnotation (id: IAnnotation['id']): Observable<IAnnotation | null> {
-    const annotation = CommonStorage.getItem(`${ keyPrefix }${ id }`);
+    const annotation = CommonStorage.getItem(`${ ANNOTATION_PREFIX }${ id }`);
     const response = annotation ? { body: JSON.parse(annotation) }:{ body: null };
 
     return this.wrappedResponse(response);
   }
   createOrUpdate (annotation: IAnnotation, articleId: IArticle['id']): Observable<IAnnotation> {
-    CommonStorage.setItem(`${ keyPrefix }${ annotation.id }`, JSON.stringify({...annotation, articleId: articleId }));
+    CommonStorage.setItem(`${ ANNOTATION_PREFIX }${ annotation.id }`, JSON.stringify({...annotation, articleId: articleId }));
 
     return this.wrappedResponse({ body: annotation }) as Observable<IAnnotation>;
   }
 
+  hasAnnotation(id: string): boolean {
+    return Boolean(CommonStorage.getItem(`${ANNOTATION_PREFIX}${id}`));
+  }
+
   deleteAnnotation (id: IAnnotation['id']): Observable<null> {
-    CommonStorage.removeItem(`${ keyPrefix }${ id }`);
+    CommonStorage.removeItem(`${ ANNOTATION_PREFIX }${ id }`);
 
     return this.wrappedResponse({ body: null }) as Observable<null>;
   }
