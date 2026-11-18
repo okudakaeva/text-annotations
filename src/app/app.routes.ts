@@ -6,6 +6,7 @@ import { NotFound } from '../components';
 import { Article } from './article/article';
 import { annotationsResolver } from './article-edit/annotations.resolver';
 import { articleTempIdResolver } from './article-edit/article-tempid.resolver';
+import { articleEditTitleResolver, articleViewTitleResolver, } from './article-edit/article-title.resolver';
 
 export const routes: Routes = [
   {
@@ -24,7 +25,7 @@ export const routes: Routes = [
   {
     path: 'article/:id',
     component: Article,
-    title: 'Просмотр статьи — Text Annotations',
+    title: articleViewTitleResolver,
     resolve: {
       article: articleResolver,
       _annotations: annotationsResolver,
@@ -33,7 +34,7 @@ export const routes: Routes = [
   {
     path: 'article/:id/edit',
     component: ArticleEdit,
-    title: 'Редактирование статьи — Text Annotations',
+    title: articleEditTitleResolver,
     resolve: {
       article: articleResolver,
       _annotations: annotationsResolver,
