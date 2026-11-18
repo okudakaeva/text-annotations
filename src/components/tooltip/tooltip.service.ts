@@ -27,11 +27,17 @@ export class TooltipService {
 
   readonly state = signal<TooltipState>(initialTooltipState);
 
-  async showTooltip (
+  async showTooltip(
     annotationId: string,
     _triggerElement: HTMLElement,
     annotationRect: DOMRect
   ): Promise<void> {
+    const currentState = this.state();
+    if (currentState.isVisible && currentState.annotationId === annotationId) {
+      this.hide();
+      return;
+    }
+
     const currentRequest = ++this.requestCounter;
     const annotation = await firstValueFrom(
       this.annotationsService.getAnnotation(annotationId)
