@@ -68,10 +68,6 @@ export class AnnotationsService {
     return Boolean(CommonStorage.getItem(`${ ANNOTATION_PREFIX }${ id }`));
   }
 
-  hasAnnotation(id: string): boolean {
-    return Boolean(CommonStorage.getItem(`${ANNOTATION_PREFIX}${id}`));
-  }
-
   deleteAnnotation (id: IAnnotation['id']): Observable<null> {
     CommonStorage.removeItem(`${ ANNOTATION_PREFIX }${ id }`);
 
