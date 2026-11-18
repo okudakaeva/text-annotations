@@ -4,14 +4,12 @@ export interface AnnotationButtonPosition {
   x: number;
   y: number;
   visible: boolean;
-  range: Range | null;
 }
 
 export const annotationButtonStartPosition: AnnotationButtonPosition = {
   x: -1000,
   y: -1000,
   visible: false,
-  range: null,
 };
 
 const BUTTON_SIZE = 36;
@@ -67,7 +65,6 @@ export class AnnotationButtonService {
       x: clampedX,
       y: clampedY,
       visible: true,
-      range,
     });
   }
 
