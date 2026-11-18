@@ -30,4 +30,22 @@
     line-height: 1;
     cursor: pointer;
   }
+
+  .edit-button,
+  .delete-button {
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #fff;
+    transition: opacity .15s ease;
+    margin: 1px 4px 1px 0;
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, .35);
+
+    &:hover{
+      opacity: .7;
+    }
+  }
+  .delete-button {
+    margin-right: 0;
+  }
 }
