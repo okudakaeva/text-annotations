@@ -34,7 +34,7 @@ class StorageLike implements IStorageLike {
   }
 
   getItem (key: string): string | null {
-    return this.isMap() ? this.storage.get(key) || null:(this.storage as Storage).getItem(key);
+    return this.isMap() ? this.storage.get(key) || null : (this.storage as Storage).getItem(key);
   }
 
   key (index: number): string | null {
