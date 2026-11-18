@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  input,
-  output,
-  Type,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, input, output, Type, } from '@angular/core';
 import { DialogContent } from './dialog-content';
 
 @Component({
@@ -34,15 +27,15 @@ export class Dialog {
   readonly closed = output<void>();
 
   @HostListener('document:keydown.escape')
-  onEscapeKey(): void {
+  onEscapeKey (): void {
     this.onCancel();
   }
 
-  onCancel(): void {
+  onCancel (): void {
     this.closed.emit();
   }
 
-  onOk(): void {
+  onOk (): void {
     this.closed.emit();
   }
 }

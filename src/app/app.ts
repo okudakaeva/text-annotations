@@ -22,7 +22,7 @@ export class App {
   private readonly preloader = inject(PreloaderService);
   private readonly tooltipService = inject(TooltipService);
 
-  constructor() {
+  constructor () {
     this.router.events.pipe(takeUntilDestroyed()).subscribe((event) => {
       if (event instanceof NavigationStart) {
         this.tooltipService.hide();

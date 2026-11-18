@@ -32,7 +32,7 @@ export class Tooltip {
   private readonly tooltipService = inject(TooltipService);
   readonly state = this.tooltipService.state;
 
-  onClose(): void {
+  onClose (): void {
     this.tooltipService.hide();
   }
 }

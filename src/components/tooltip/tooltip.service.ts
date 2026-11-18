@@ -27,7 +27,7 @@ export class TooltipService {
 
   readonly state = signal<TooltipState>(initialTooltipState);
 
-  async showTooltip(
+  async showTooltip (
     annotationId: string,
     _triggerElement: HTMLElement,
     annotationRect: DOMRect
@@ -57,14 +57,14 @@ export class TooltipService {
     });
   }
 
-  hide(): void {
+  hide (): void {
     this.requestCounter++;
     this.state.update((prev) =>
       prev.isVisible ? { ...prev, isVisible: false, annotationId: null } : prev
     );
   }
 
-  private getTooltipSize(text: string): Promise<{ width: number; height: number }> {
+  private getTooltipSize (text: string): Promise<{ width: number; height: number }> {
     return new Promise((resolve) => {
       const tempContainer = document.createElement('div');
       Object.assign(tempContainer.style, {
@@ -91,7 +91,7 @@ export class TooltipService {
     });
   }
 
-  private calculatePosition(
+  private calculatePosition (
     annotationRect: DOMRect,
     tooltipSize: { width: number; height: number }
   ): { x: number; y: number } {

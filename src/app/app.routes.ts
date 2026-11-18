@@ -27,7 +27,7 @@ export const routes: Routes = [
     title: 'Просмотр статьи — Text Annotations',
     resolve: {
       article: articleResolver,
-      annotations: annotationsResolver,
+      _annotations: annotationsResolver,
     },
   },
   {
@@ -36,7 +36,7 @@ export const routes: Routes = [
     title: 'Редактирование статьи — Text Annotations',
     resolve: {
       article: articleResolver,
-      annotations: annotationsResolver,
+      _annotations: annotationsResolver,
     },
   },
   {

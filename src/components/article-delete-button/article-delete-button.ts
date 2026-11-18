@@ -10,13 +10,14 @@ import { PreloaderService } from '../preloader/preloader.service';
 @Component({
   selector: 'app-article-delete-button',
   imports: [Button],
-  template: `<app-button
-    title="&#128465;"
-    type="button"
-    hint="Удалить"
-    theme="light"
-    (clickAction)="deleteArticle()"
-  />`,
+  template: `
+    <app-button
+      title="&#128465;"
+      type="button"
+      hint="Удалить"
+      theme="light"
+      (clickAction)="deleteArticle()"
+    />`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleDeleteButton {
@@ -29,21 +30,23 @@ export class ArticleDeleteButton {
   private readonly articleService = inject(ArticleService);
   private readonly dialogService = inject(DialogService);
 
-  deleteArticle(): void {
+  deleteArticle (): void {
     this.dialogService.open(ArticleDeleteDialog, {
-      article: this.article(),
-      onConfirmDialog: async () => {
-        this.preloader.show();
-        try {
-          await firstValueFrom(this.articleService.deleteArticle(this.article().id));
-          await firstValueFrom(this.refreshData()());
+      bindings: {
+        article: this.article(),
+        onConfirmDialog: async () => {
+          this.preloader.show();
+          try {
+            await firstValueFrom(this.articleService.deleteArticle(this.article().id));
+            await firstValueFrom(this.refreshData()());
 
-          if (this.returnToHome()) {
-            await this.router.navigate(['/']);
+            if (this.returnToHome()) {
+              await this.router.navigate(['/']);
+            }
+          } finally {
+            this.preloader.hide();
           }
-        } finally {
-          this.preloader.hide();
-        }
+        },
       },
     });
   }

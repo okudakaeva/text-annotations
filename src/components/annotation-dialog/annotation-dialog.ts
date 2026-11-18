@@ -45,7 +45,7 @@ const DEFAULT_COLOR = '#ffffe0';
               type="button"
               (clickAction)="closeDialog()"
             />
-            <app-button title="Создать" />
+            <app-button title="Создать"/>
           </div>
         </app-toolbar>
       </div>
@@ -57,7 +57,8 @@ const DEFAULT_COLOR = '#ffffe0';
 export class AnnotationDialog {
   readonly annotation = input.required<IAnnotation>();
   readonly onSaveAnnotation = input.required<(a: IAnnotation) => void>();
-  readonly onCloseDialog = input<() => void>(() => {});
+  readonly onCloseDialog = input<() => void>(() => {
+  });
   readonly okEvent = output<void>();
   readonly cancelEvent = output<void>();
 
@@ -66,7 +67,7 @@ export class AnnotationDialog {
     color: new FormControl(DEFAULT_COLOR, { nonNullable: true }),
   });
 
-  constructor() {
+  constructor () {
     effect(() => {
       const current = this.annotation();
       this.annotationForm.patchValue({
@@ -76,7 +77,7 @@ export class AnnotationDialog {
     });
   }
 
-  createAnnotation(): void {
+  async createAnnotation (): Promise<void> {
     if (this.annotationForm.invalid) {
       this.annotationForm.markAllAsTouched();
       return;
@@ -88,11 +89,11 @@ export class AnnotationDialog {
       color: this.annotationForm.get('color')?.value ?? DEFAULT_COLOR,
     };
 
-    this.onSaveAnnotation()(updated);
+    await this.onSaveAnnotation()(updated);
     this.okEvent.emit();
   }
 
-  closeDialog(): void {
+  closeDialog (): void {
     this.onCloseDialog()();
     this.cancelEvent.emit();
   }

@@ -9,14 +9,14 @@ export class AnnotationsRenderer implements OnDestroy {
   private observer: MutationObserver | null = null;
   private isScheduled = false;
 
-  initData(annotations: IAnnotationList): void {
+  initData (annotations: IAnnotationList): void {
     this.annotations = annotations;
     this.disconnect();
     this.setupGlobalObserver();
     this.applyStylesToAllAnnotations();
   }
 
-  applyStylesToAllAnnotations(): void {
+  applyStylesToAllAnnotations (): void {
     this.disconnect();
 
     try {
@@ -27,10 +27,14 @@ export class AnnotationsRenderer implements OnDestroy {
       const marks = document.querySelectorAll<HTMLElement>(MARK_SELECTOR);
       marks.forEach((mark) => {
         const annotationId = mark.getAttribute('data-annotation-id');
-        if (!annotationId) return;
+        if (!annotationId) {
+          return;
+        }
 
         const annotation = this.annotations.get(annotationId);
-        if (!annotation?.color) return;
+        if (!annotation?.color) {
+          return;
+        }
 
         mark.style.backgroundColor = annotation.color;
         mark.style.color = this.getContrastTextColor(annotation.color);
@@ -40,7 +44,7 @@ export class AnnotationsRenderer implements OnDestroy {
     }
   }
 
-  private setupGlobalObserver(): void {
+  private setupGlobalObserver (): void {
     this.observer = new MutationObserver((mutations) => {
       const hasAddedMarks = mutations.some(
         (mutation) =>
@@ -65,23 +69,23 @@ export class AnnotationsRenderer implements OnDestroy {
     this.connect();
   }
 
-  private connect(): void {
+  private connect (): void {
     this.observer?.observe(document.body, {
       childList: true,
       subtree: true,
     });
   }
 
-  private disconnect(): void {
+  private disconnect (): void {
     this.observer?.disconnect();
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy (): void {
     this.disconnect();
     this.observer = null;
   }
 
-  private getContrastTextColor(color: string): string {
+  private getContrastTextColor (color: string): string {
     const temp = document.createElement('span');
     temp.style.color = color;
     document.body.appendChild(temp);
@@ -89,7 +93,9 @@ export class AnnotationsRenderer implements OnDestroy {
     temp.remove();
 
     const match = rgb.match(/\d+/g);
-    if (!match || match.length < 3) return '#111111';
+    if (!match || match.length < 3) {
+      return '#111111';
+    }
 
     const [r, g, b] = match.map(Number);
     const yiq = (r * 299 + g * 587 + b * 114) / 1000;

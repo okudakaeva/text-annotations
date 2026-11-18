@@ -1,12 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  ElementRef,
-  inject,
-  input,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, input, viewChild, } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   AbstractControl,
@@ -27,12 +19,7 @@ import {
   Toolbar,
   TooltipContainer,
 } from '../../components';
-import {
-  AnnotationsRenderer,
-  ArticleService,
-  IAnnotationList,
-  IArticle,
-} from '../../services';
+import { AnnotationsRenderer, AnnotationsService, ArticleService, IArticle, } from '../../services';
 
 @Component({
   selector: 'app-article-edit',
@@ -54,10 +41,10 @@ import {
 export class ArticleEdit {
   readonly article = input<IArticle>();
   readonly tempId = input<IArticle['id'] | null>(null);
-  readonly annotations = input<IAnnotationList>(new Map());
 
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
+  private readonly annotationsService = inject(AnnotationsService);
   private readonly annotationButtonService = inject(AnnotationButtonService);
   private readonly router = inject(Router);
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
@@ -69,13 +56,13 @@ export class ArticleEdit {
     text: new FormControl('', [() => this.textRequiredValidator()]),
   });
 
-  constructor() {
+  constructor () {
     effect(() => {
-      const currentAnnotations = this.annotations();
+      this.annotationsRenderer.initData(this.annotationsService.annotations());
+    });
+
+    effect(() => {
       const currentArticle = this.article();
-
-      this.annotationsRenderer.initData(currentAnnotations);
-
       if (currentArticle) {
         this.articleForm.patchValue({
           title: currentArticle.title || '',
@@ -85,23 +72,23 @@ export class ArticleEdit {
     });
   }
 
-  isTextEmpty(): boolean {
+  isTextEmpty (): boolean {
     const html = this.articleForm?.get('text')?.value ?? '';
     const plainText = html.replace(/<[^>]*>/g, '').trim();
     return plainText.length === 0;
   }
 
-  textRequiredValidator(control?: AbstractControl): ValidationErrors | null {
+  textRequiredValidator (control?: AbstractControl): ValidationErrors | null {
     const html = (control?.value ?? this.articleForm?.get('text')?.value ?? '') as string;
     const plainText = html.replace(/<[^>]*>/g, '').trim();
     return plainText.length === 0 ? { required: true } : null;
   }
 
-  isCreationMode(): boolean {
+  isCreationMode (): boolean {
     return Boolean(this.tempId());
   }
 
-  async saveArticle(): Promise<void> {
+  async saveArticle (): Promise<void> {
     if (this.articleForm.invalid) {
       this.articleForm.markAllAsTouched();
       return;
@@ -124,7 +111,7 @@ export class ArticleEdit {
     }
   }
 
-  onSelectionDetected(range: Range | null): void {
+  onSelectionDetected (range: Range | null): void {
     this.annotationButtonService.processSelection(range);
   }
 }

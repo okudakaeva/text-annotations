@@ -26,7 +26,7 @@ class StorageLike implements IStorageLike {
   }
 
   get length (): number {
-    return this.isMap() ? this.storage.size:(this.storage as Storage).length;
+    return this.isMap() ? this.storage.size : (this.storage as Storage).length;
   }
 
   clear () {

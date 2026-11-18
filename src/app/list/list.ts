@@ -2,12 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { RouterLink } from '@angular/router';
 import { finalize, Observable, take, tap } from 'rxjs';
 import { ArticleService, IArticle } from '../../services';
-import {
-  ArticleDeleteButton,
-  ArticleEditButton,
-  PreloaderService,
-  Toolbar,
-} from '../../components';
+import { ArticleDeleteButton, ArticleEditButton, PreloaderService, Toolbar, } from '../../components';
 
 @Component({
   selector: 'app-list',
@@ -22,11 +17,11 @@ export class List implements OnInit {
   readonly articles = signal<IArticle[]>([]);
   readonly initialized = signal(false);
 
-  ngOnInit(): void {
+  ngOnInit (): void {
     this.loadArticles().subscribe();
   }
 
-  loadArticles(): Observable<IArticle[]> {
+  loadArticles (): Observable<IArticle[]> {
     this.preloader.show();
     return this.articleService.getList().pipe(
       take(1),

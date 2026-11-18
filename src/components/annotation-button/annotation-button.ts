@@ -32,32 +32,41 @@ export class AnnotationButton {
 
   readonly position = this.positionService.position;
 
-  openAnnotationDialog(): void {
+  openAnnotationDialog (): void {
     const annotationId = this.wrapSelectionWithAnnotation();
     if (!annotationId) {
       return;
     }
 
     this.positionService.hideButton();
+    let isSaved = false;
 
-    this.dialogService.open(AnnotationDialog, {
-      annotation: {
-        id: annotationId,
-        text: '',
-      },
-      onSaveAnnotation: async (annotation: IAnnotation) => {
-        const articleId =
-          this.route.snapshot.paramMap.get('id') ?? this.route.snapshot.data['tempId'];
-        await firstValueFrom(this.annotationService.createOrUpdate(annotation, articleId));
-        this.markAnnotation(annotation);
-      },
-      onCloseDialog: () => {
-        this.removeAnnotationMark(annotationId);
-      },
-    });
+    this.dialogService.open(
+      AnnotationDialog, {
+        bindings: {
+          annotation: {
+            id: annotationId,
+            text: '',
+          },
+          onSaveAnnotation: async (annotation: IAnnotation) => {
+            const articleId =
+              this.route.snapshot.paramMap.get('id') ??
+              this.route.snapshot.data['tempId'];
+            await firstValueFrom(this.annotationService.createOrUpdate(annotation, articleId));
+            isSaved = true;
+            this.markAnnotation(annotation);
+          },
+        },
+        onCancel: () => {
+          if (!isSaved) {
+            this.removeAnnotationMark(annotationId);
+          }
+        },
+      }
+    );
   }
 
-  private wrapSelectionWithAnnotation(): string | null {
+  private wrapSelectionWithAnnotation (): string | null {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
       return null;
@@ -73,38 +82,93 @@ export class AnnotationButton {
         ? crypto.randomUUID()
         : Date.now().toString();
 
-    const annotationEl = document.createElement('mark');
-    annotationEl.setAttribute('data-annotation-id', annotationId);
-    annotationEl.setAttribute('data-no-tooltip', 'true');
+    const textNodes = this.collectTextNodesInRange(range);
+    if (textNodes.length === 0) {
+      return null;
+    }
 
-    const fragment = range.extractContents();
-    annotationEl.appendChild(fragment);
-    range.insertNode(annotationEl);
+    for (const { node, start, end } of textNodes) {
+      const subRange = document.createRange();
+      subRange.setStart(node, start);
+      subRange.setEnd(node, end);
+
+      const annotationEl = document.createElement('mark');
+      annotationEl.setAttribute('data-annotation-id', annotationId);
+      annotationEl.setAttribute('data-no-tooltip', 'true');
+
+      subRange.surroundContents(annotationEl);
+    }
 
     selection.removeAllRanges();
     return annotationId;
   }
 
-  private removeAnnotationMark(id: string): void {
-    const annotationEl = document.querySelector(`[data-annotation-id="${id}"]`);
-    if (!annotationEl?.parentNode) return;
+  private collectTextNodesInRange (
+    range: Range
+  ): Array<{ node: Text; start: number; end: number }> {
+    const root = range.commonAncestorContainer;
 
-    const parent = annotationEl.parentNode;
-    while (annotationEl.firstChild) {
-      parent.insertBefore(annotationEl.firstChild, annotationEl);
+    if (root.nodeType === Node.TEXT_NODE) {
+      const textNode = root as Text;
+      const slice = textNode.data.slice(range.startOffset, range.endOffset);
+      return slice.trim()
+        ? [{ node: textNode, start: range.startOffset, end: range.endOffset }]
+        : [];
     }
-    parent.removeChild(annotationEl);
-    parent.normalize();
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const result: Array<{ node: Text; start: number; end: number }> = [];
+    let current = walker.nextNode() as Text | null;
+
+    while (current) {
+      if (range.intersectsNode(current)) {
+        const start = current === range.startContainer ? range.startOffset : 0;
+        const end =
+          current === range.endContainer ? range.endOffset : current.data.length;
+
+        if (end > start && current.data.slice(start, end).trim()) {
+          result.push({ node: current, start, end });
+        }
+      }
+      current = walker.nextNode() as Text | null;
+    }
+
+    return result;
   }
 
-  private markAnnotation(annotation: IAnnotation): void {
-    const annotationEl = document.querySelector<HTMLElement>(
-      `[data-annotation-id="${annotation.id}"]`
-    );
-    if (!annotationEl) return;
+  private removeAnnotationMark (id: string): void {
+    const annotationEls = document.querySelectorAll(`[data-annotation-id="${ id }"]`);
+    const parents = new Set<Node>();
 
-    annotationEl.style.backgroundColor = annotation.color || '';
-    annotationEl.removeAttribute('data-no-tooltip');
-    annotationEl.dispatchEvent(new Event('input', { bubbles: true }));
+    annotationEls.forEach((annotationEl) => {
+      const parent = annotationEl.parentNode;
+      if (!parent) {
+        return;
+      }
+
+      parents.add(parent);
+      while (annotationEl.firstChild) {
+        parent.insertBefore(annotationEl.firstChild, annotationEl);
+      }
+      parent.removeChild(annotationEl);
+    });
+
+    parents.forEach((parent) => parent.normalize());
+  }
+
+  private markAnnotation (annotation: IAnnotation): void {
+    const annotationEls = document.querySelectorAll<HTMLElement>(
+      `[data-annotation-id="${ annotation.id }"]`
+    );
+    if (annotationEls.length === 0) {
+      return;
+    }
+
+    annotationEls.forEach((annotationEl) => {
+      annotationEl.style.backgroundColor = annotation.color || '';
+      annotationEl.removeAttribute('data-no-tooltip');
+    });
+
+    annotationEls[0].dispatchEvent(new Event('input', { bubbles: true }));
   }
 }

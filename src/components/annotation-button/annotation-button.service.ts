@@ -23,7 +23,7 @@ const VIEWPORT_PADDING = 8;
 export class AnnotationButtonService {
   readonly position = signal<AnnotationButtonPosition>(annotationButtonStartPosition);
 
-  processSelection(range: Range | null): void {
+  processSelection (range: Range | null): void {
     if (!range) {
       this.hideButton();
       return;
@@ -71,7 +71,7 @@ export class AnnotationButtonService {
     });
   }
 
-  hideButton(): void {
+  hideButton (): void {
     this.position.set(annotationButtonStartPosition);
   }
 }

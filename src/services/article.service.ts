@@ -33,7 +33,7 @@ export class ArticleService {
 
   getArticle (id: IArticle['id']): Observable<IArticle | Observable<never>> {
     const article = CommonStorage.getItem(`${ keyPrefix }${ id }`);
-    const response = article ? { body: JSON.parse(article) }:{ status: 404, statusText: 'Not Found', body: null };
+    const response = article ? { body: JSON.parse(article) } : { status: 404, statusText: 'Not Found', body: null };
 
     return this.wrappedResponse(response);
   }
@@ -70,7 +70,7 @@ export class ArticleService {
       );
   }
 
-  generateId(): string {
+  generateId (): string {
     return Math.random().toString(36).substring(2, 9);
   }
 }

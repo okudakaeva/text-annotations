@@ -11,6 +11,11 @@ import {
 } from '@angular/core';
 import { Dialog } from './dialog';
 
+export interface DialogOpenOptions {
+  bindings?: Record<string, unknown>;
+  onCancel?: () => void;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -23,7 +28,10 @@ export class DialogService {
   private readonly injector = inject(EnvironmentInjector);
   private readonly appRef = inject(ApplicationRef);
 
-  open<T>(component: Type<T>, bindings?: Record<string, unknown>): ComponentRef<Dialog> {
+  open<T> (
+    component: Type<T>,
+    options: DialogOpenOptions,
+  ): ComponentRef<Dialog> {
     if (this.dialogRef) {
       this.close();
     }
@@ -34,8 +42,11 @@ export class DialogService {
       hostElement: this.hostRef,
       bindings: [
         inputBinding('dynamicContent', () => component),
-        inputBinding('bindings', () => bindings),
-        outputBinding('closed', () => this.close()),
+        inputBinding('bindings', () => options.bindings),
+        outputBinding('closed', () => {
+          options.onCancel?.();
+          this.close();
+        }),
       ],
     });
 
@@ -46,12 +57,12 @@ export class DialogService {
     return this.dialogRef;
   }
 
-  close(): void {
+  close (): void {
     this.unlockScroll();
     this.destroyDialog();
   }
 
-  private destroyDialog(): void {
+  private destroyDialog (): void {
     if (this.dialogRef && this.hostRef) {
       this.hostRef.remove();
       this.appRef.detachView(this.dialogRef.hostView);
@@ -61,18 +72,22 @@ export class DialogService {
     this.hostRef = null;
   }
 
-  private lockScroll(): void {
-    if (this.isScrollLocked) return;
+  private lockScroll (): void {
+    if (this.isScrollLocked) {
+      return;
+    }
     this.isScrollLocked = true;
     this.scrollPosition = window.scrollY;
     document.body.style.position = 'fixed';
-    document.body.style.top = `-${this.scrollPosition}px`;
+    document.body.style.top = `-${ this.scrollPosition }px`;
     document.body.style.left = '0';
     document.body.style.right = '0';
   }
 
-  private unlockScroll(): void {
-    if (!this.isScrollLocked) return;
+  private unlockScroll (): void {
+    if (!this.isScrollLocked) {
+      return;
+    }
     this.isScrollLocked = false;
     document.body.style.position = '';
     document.body.style.top = '';

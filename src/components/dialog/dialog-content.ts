@@ -31,11 +31,11 @@ export class DialogContent implements AfterViewInit, OnDestroy {
   readonly okEvent = output<void>();
   readonly cancelEvent = output<void>();
 
-  ngAfterViewInit(): void {
+  ngAfterViewInit (): void {
     queueMicrotask(() => this.loadContent());
   }
 
-  loadContent(): void {
+  loadContent (): void {
     const data = this.bindings() ?? {};
     const dynamicBindings = Object.keys(data).map((key) =>
       inputBinding(key, () => data[key])
@@ -52,7 +52,7 @@ export class DialogContent implements AfterViewInit, OnDestroy {
     this.compRef.changeDetectorRef.detectChanges();
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy (): void {
     this.compRef?.destroy();
     this.compRef = null;
   }

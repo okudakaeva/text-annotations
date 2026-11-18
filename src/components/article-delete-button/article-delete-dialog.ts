@@ -36,12 +36,12 @@ export class ArticleDeleteDialog {
   readonly okEvent = output<void>();
   readonly cancelEvent = output<void>();
 
-  confirmDialog(): void {
+  confirmDialog (): void {
     this.onConfirmDialog()();
     this.okEvent.emit();
   }
 
-  closeDialog(): void {
+  closeDialog (): void {
     this.cancelEvent.emit();
   }
 }

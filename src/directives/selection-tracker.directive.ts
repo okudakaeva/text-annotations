@@ -16,7 +16,7 @@ export class SelectionTracker implements OnDestroy {
     }
   };
 
-  constructor() {
+  constructor () {
     this.setupScrollListeners();
     this.setupSelectionChangeHandler();
   }
@@ -24,24 +24,24 @@ export class SelectionTracker implements OnDestroy {
   @HostListener('mouseup')
   @HostListener('touchend')
   @HostListener('keyup')
-  onSelectionComplete(): void {
+  onSelectionComplete (): void {
     this.emitCurrentSelection();
   }
 
   @HostListener('mousedown')
   @HostListener('touchstart')
-  onSelectionStart(): void {
+  onSelectionStart (): void {
     this.selectionDetected.emit(null);
   }
 
-  private setupSelectionChangeHandler(): void {
+  private setupSelectionChangeHandler (): void {
     document.addEventListener('selectionchange', this.handleSelectionChange, {
       passive: true,
       signal: this.abortCtrl.signal,
     });
   }
 
-  private emitCurrentSelection(): void {
+  private emitCurrentSelection (): void {
     const selection = window.getSelection();
 
     if (!selection || selection.rangeCount === 0 || !selection.toString().trim()) {
@@ -59,7 +59,7 @@ export class SelectionTracker implements OnDestroy {
     this.selectionDetected.emit(range);
   }
 
-  private isSelectionInsideElement(range: Range): boolean {
+  private isSelectionInsideElement (range: Range): boolean {
     const element = this.el.nativeElement;
     return (
       range.commonAncestorContainer === element ||
@@ -67,12 +67,12 @@ export class SelectionTracker implements OnDestroy {
     );
   }
 
-  private setupScrollListeners(): void {
+  private setupScrollListeners (): void {
     this.addScrollListener(this.el.nativeElement);
     this.addScrollListener(window);
   }
 
-  private addScrollListener(target: EventTarget): void {
+  private addScrollListener (target: EventTarget): void {
     const handler = (): void => {
       queueMicrotask(() => this.emitCurrentSelection());
     };
@@ -83,7 +83,7 @@ export class SelectionTracker implements OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy (): void {
     this.abortCtrl.abort();
   }
 }

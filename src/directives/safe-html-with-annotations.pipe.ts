@@ -7,8 +7,10 @@ import { sanitizerConfig } from './sanitizer.cfg';
 export class SafeHtmlWithAnnotationsPipe implements PipeTransform {
   private sanitizer = inject(DomSanitizer)
 
-  transform(value: string): SafeHtml {
-    if (!value) return this.sanitizer.bypassSecurityTrustHtml('');
+  transform (value: string): SafeHtml {
+    if (!value) {
+      return this.sanitizer.bypassSecurityTrustHtml('');
+    }
 
     const purified = DOMPurify.sanitize(value, sanitizerConfig);
 

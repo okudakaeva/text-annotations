@@ -10,4 +10,5 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   styleUrl: './toolbar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Toolbar {}
+export class Toolbar {
+}

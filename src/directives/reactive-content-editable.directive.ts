@@ -1,13 +1,4 @@
-import {
-  Directive,
-  ElementRef,
-  forwardRef,
-  HostListener,
-  inject,
-  OnDestroy,
-  OnInit,
-  Renderer2,
-} from '@angular/core';
+import { Directive, ElementRef, forwardRef, HostListener, inject, OnDestroy, OnInit, Renderer2, } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import DOMPurify from 'dompurify';
 import { sanitizerConfig } from './sanitizer.cfg';
@@ -24,8 +15,10 @@ import { sanitizerConfig } from './sanitizer.cfg';
   ],
 })
 export class ReactiveContentEditable implements ControlValueAccessor, OnInit, OnDestroy {
-  private onChange: (value: string) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: string) => void = () => {
+  };
+  private onTouched: () => void = () => {
+  };
 
   private readonly el = inject(ElementRef<HTMLElement>);
   private readonly renderer = inject(Renderer2);
@@ -34,11 +27,11 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
   private isWritingFromModel = false;
   private lastEmittedValue = '';
 
-  ngOnInit(): void {
+  ngOnInit (): void {
     this.setupMutationObserver();
   }
 
-  writeValue(value: string): void {
+  writeValue (value: string): void {
     const sanitized = this.sanitizeHtml(value || '');
     this.isWritingFromModel = true;
     try {
@@ -51,15 +44,15 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
     }
   }
 
-  registerOnChange(fn: (value: string) => void): void {
+  registerOnChange (fn: (value: string) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: () => void): void {
+  registerOnTouched (fn: () => void): void {
     this.onTouched = fn;
   }
 
-  setDisabledState(isDisabled: boolean): void {
+  setDisabledState (isDisabled: boolean): void {
     this.renderer.setAttribute(
       this.el.nativeElement,
       'contenteditable',
@@ -68,22 +61,24 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
   }
 
   @HostListener('input')
-  onInput(): void {
+  onInput (): void {
     this.updateModel();
   }
 
   @HostListener('blur')
-  onBlur(): void {
+  onBlur (): void {
     this.onTouched();
   }
 
   @HostListener('paste', ['$event'])
-  onPaste(event: ClipboardEvent): void {
+  onPaste (event: ClipboardEvent): void {
     event.preventDefault();
 
     const plainText = event.clipboardData?.getData('text/plain') || '';
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
+    if (!selection || selection.rangeCount === 0) {
+      return;
+    }
 
     const range = selection.getRangeAt(0);
     range.deleteContents();
@@ -116,21 +111,29 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
     this.updateModel();
   }
 
-  private updateModel(): void {
-    if (this.isWritingFromModel) return;
+  private updateModel (): void {
+    if (this.isWritingFromModel) {
+      return;
+    }
 
     const value = this.el.nativeElement.innerHTML;
-    if (value === this.lastEmittedValue) return;
+    if (value === this.lastEmittedValue) {
+      return;
+    }
 
     this.lastEmittedValue = value;
     this.onChange(value);
   }
 
-  private setupMutationObserver(): void {
+  private setupMutationObserver (): void {
     this.observer = new MutationObserver((mutations) => {
       const hasContentChanges = mutations.some((m) => {
-        if (m.type === 'characterData') return true;
-        if (m.type !== 'childList') return false;
+        if (m.type === 'characterData') {
+          return true;
+        }
+        if (m.type !== 'childList') {
+          return false;
+        }
 
         const changedNodes = [...m.addedNodes, ...m.removedNodes];
         return changedNodes.some(
@@ -153,11 +156,11 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
   }
 
 
-  private sanitizeHtml(html: string): string {
+  private sanitizeHtml (html: string): string {
     return DOMPurify.sanitize(html, sanitizerConfig);
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy (): void {
     this.observer?.disconnect();
     this.observer = null;
   }
