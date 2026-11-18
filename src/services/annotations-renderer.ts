@@ -2,12 +2,15 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { IAnnotationList } from './annotations.service';
 
 const MARK_SELECTOR = 'mark[data-annotation-id]';
+const DARK_TEXT = '#111111';
+const LIGHT_TEXT = '#ffffff';
 
 @Injectable({ providedIn: 'root' })
 export class AnnotationsRenderer implements OnDestroy {
   private annotations: IAnnotationList = new Map();
   private observer: MutationObserver | null = null;
   private isScheduled = false;
+  private readonly contrastCache = new Map<string, string>();
 
   initData (annotations: IAnnotationList): void {
     this.annotations = annotations;
@@ -83,22 +86,62 @@ export class AnnotationsRenderer implements OnDestroy {
   ngOnDestroy (): void {
     this.disconnect();
     this.observer = null;
+    this.contrastCache.clear();
   }
 
   private getContrastTextColor (color: string): string {
+    const normalized = color.trim().toLowerCase();
+    const cached = this.contrastCache.get(normalized);
+
+    if (cached) {
+      return cached;
+    }
+
+    const rgb = this.parseHexColor(normalized) ?? this.resolveCssColorViaDom(normalized);
+    if (!rgb) {
+      return DARK_TEXT;
+    }
+
+    const [r, g, b] = rgb;
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    const result = yiq >= 145 ? DARK_TEXT : LIGHT_TEXT;
+
+    this.contrastCache.set(normalized, result);
+    return result;
+  }
+
+  private parseHexColor (color: string): [number, number, number] | null {
+    const shortHex = /^#([0-9a-f]{3})$/i.exec(color);
+    if (shortHex) {
+      const [r, g, b] = shortHex[1].split('').map((ch) => parseInt(ch + ch, 16));
+      return [r, g, b];
+    }
+
+    const fullHex = /^#([0-9a-f]{6})$/i.exec(color);
+    if (fullHex) {
+      const hex = fullHex[1];
+      return [
+        parseInt(hex.slice(0, 2), 16),
+        parseInt(hex.slice(2, 4), 16),
+        parseInt(hex.slice(4, 6), 16),
+      ];
+    }
+
+    return null;
+  }
+
+  private resolveCssColorViaDom (color: string): [number, number, number] | null {
     const temp = document.createElement('span');
     temp.style.color = color;
     document.body.appendChild(temp);
-    const rgb = getComputedStyle(temp).color;
+    const computed = getComputedStyle(temp).color;
     temp.remove();
 
-    const match = rgb.match(/\d+/g);
+    const match = computed.match(/\d+/g);
     if (!match || match.length < 3) {
-      return '#111111';
+      return null;
     }
 
-    const [r, g, b] = match.map(Number);
-    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-    return yiq >= 145 ? '#111111' : '#ffffff';
+    return [Number(match[0]), Number(match[1]), Number(match[2])];
   }
 }

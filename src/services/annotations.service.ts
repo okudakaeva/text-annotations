@@ -1,8 +1,8 @@
 import { Injectable, signal } from '@angular/core';
-import { delay, map, Observable, of, tap } from 'rxjs';
-import { CommonStorage } from './common-storage';
-import { HttpResponse } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
 import { IArticle } from './article.service';
+import { CommonStorage } from './common-storage';
+import { mockHttpResponse } from './mock-http';
 
 const ANNOTATION_PREFIX = 'annotation_';
 
@@ -26,26 +26,25 @@ export class AnnotationsService {
     for (let i = 0; i < CommonStorage.length; i++) {
       const key = CommonStorage.key(i);
 
-      if (key?.indexOf(`${ ANNOTATION_PREFIX }`) === 0) {
+      if (key?.indexOf(ANNOTATION_PREFIX) === 0) {
         const annotation = JSON.parse(CommonStorage.getItem(key)!);
 
-        if (annotation.articleId === id || key?.indexOf(`${ ANNOTATION_PREFIX }${ id }`) === 0) {
+        if (annotation.articleId === id || key.indexOf(`${ ANNOTATION_PREFIX }${ id }`) === 0) {
           list.set(annotation.id, annotation);
         }
       }
     }
 
-    return (this.wrappedResponse({ body: list }) as Observable<IAnnotationList>)
-      .pipe(
-        tap((loadedList) => this._annotations.set(new Map(loadedList)))
-      );
+    return mockHttpResponse({ body: list }).pipe(
+      tap((loadedList) => this._annotations.set(new Map(loadedList)))
+    );
   }
 
   getAnnotation (id: IAnnotation['id']): Observable<IAnnotation | null> {
     const annotation = CommonStorage.getItem(`${ ANNOTATION_PREFIX }${ id }`);
-    const response = annotation ? { body: JSON.parse(annotation) } : { body: null };
-
-    return this.wrappedResponse(response);
+    return mockHttpResponse<IAnnotation | null>({
+      body: annotation ? JSON.parse(annotation) : null,
+    });
   }
 
   createOrUpdate (annotation: IAnnotation, articleId: IArticle['id']): Observable<IAnnotation> {
@@ -54,16 +53,15 @@ export class AnnotationsService {
       JSON.stringify({ ...annotation, articleId })
     );
 
-    return (this.wrappedResponse({ body: annotation }) as Observable<IAnnotation>)
-      .pipe(
-        tap((saved) => {
-          this._annotations.update((current) => {
-            const next = new Map(current);
-            next.set(saved.id, saved);
-            return next;
-          });
-        })
-      );
+    return mockHttpResponse({ body: annotation }).pipe(
+      tap((saved) => {
+        this._annotations.update((current) => {
+          const next = new Map(current);
+          next.set(saved.id, saved);
+          return next;
+        });
+      })
+    );
   }
 
   hasAnnotation (id: string): boolean {
@@ -73,33 +71,30 @@ export class AnnotationsService {
   deleteAnnotation (id: IAnnotation['id']): Observable<null> {
     CommonStorage.removeItem(`${ ANNOTATION_PREFIX }${ id }`);
 
-    return (this.wrappedResponse({ body: null }) as Observable<null>)
-      .pipe(
-        tap(() => {
-          this._annotations.update((current) => {
-            const next = new Map(current);
-            next.delete(id);
-            return next;
-          });
-        })
-      );
+    return mockHttpResponse({ body: null }).pipe(
+      tap(() => {
+        this._annotations.update((current) => {
+          const next = new Map(current);
+          next.delete(id);
+          return next;
+        });
+      })
+    );
   }
 
-  clear (): void {
-    this._annotations.set(new Map());
-  }
-
-  deleteByArticleId(articleId: IArticle['id']): void {
+  deleteByArticleId (articleId: IArticle['id']): void {
     const keysToRemove: string[] = [];
 
     for (let i = 0; i < CommonStorage.length; i++) {
       const key = CommonStorage.key(i);
       if (key?.startsWith(ANNOTATION_PREFIX)) {
         const raw = CommonStorage.getItem(key);
-        if (!raw) continue;
+        if (!raw) {
+          continue;
+        }
 
         const annotation = JSON.parse(raw);
-        if (annotation.articleId === articleId || key.startsWith(`${ANNOTATION_PREFIX}${articleId}`)) {
+        if (annotation.articleId === articleId || key.startsWith(`${ ANNOTATION_PREFIX }${ articleId }`)) {
           keysToRemove.push(key);
         }
       }
@@ -108,21 +103,7 @@ export class AnnotationsService {
     keysToRemove.forEach((key) => CommonStorage.removeItem(key));
   }
 
-  private wrappedResponse<T> (value: { body: T; [key: string]: any }): Observable<T | null | Observable<never>> {
-    return of(
-      new HttpResponse({
-        status: 200,
-        ...value,
-      })
-    ).pipe(
-      delay(100),
-      map((response: HttpResponse<T>) => {
-        if (response.status === 200) {
-          return response.body;
-        } else {
-          throw response;
-        }
-      })
-    );
+  clear (): void {
+    this._annotations.set(new Map());
   }
 }
