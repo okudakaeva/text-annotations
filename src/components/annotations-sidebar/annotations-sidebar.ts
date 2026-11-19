@@ -176,7 +176,6 @@ export class AnnotationsSidebar {
     const stepFrame = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / durationMs, 1);
-      // Плавное замедление в конце (ease-out cubic)
       const eased = 1 - Math.pow(1 - progress, 3);
 
       element.scrollTop = startTop + deltaY * eased;
