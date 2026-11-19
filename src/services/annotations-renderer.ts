@@ -89,7 +89,7 @@ export class AnnotationsRenderer implements OnDestroy {
     this.contrastCache.clear();
   }
 
-  private getContrastTextColor (color: string): string {
+  getContrastTextColor (color: string): string {
     const normalized = color.trim().toLowerCase();
     const cached = this.contrastCache.get(normalized);
 

@@ -106,4 +106,53 @@ export class AnnotationsService {
   clear (): void {
     this._annotations.set(new Map());
   }
+
+  pruneOrphansForArticle (articleId: IArticle['id'], articleHtml: string): void {
+    const temp = document.createElement('div');
+    temp.innerHTML = articleHtml;
+
+    const activeIds = new Set<string>();
+    temp.querySelectorAll<HTMLElement>('mark[data-annotation-id]').forEach((mark) => {
+      const id = mark.getAttribute('data-annotation-id');
+      if (id) {
+        activeIds.add(id);
+      }
+    });
+
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < CommonStorage.length; i++) {
+      const key = CommonStorage.key(i);
+      if (!key?.startsWith(ANNOTATION_PREFIX)) {
+        continue;
+      }
+
+      const raw = CommonStorage.getItem(key);
+      if (!raw) {
+        continue;
+      }
+
+      const annotation = JSON.parse(raw);
+      const belongsToArticle =
+        annotation.articleId === articleId || key.startsWith(`${ ANNOTATION_PREFIX }${ articleId }`);
+
+      if (belongsToArticle && !activeIds.has(annotation.id)) {
+        keysToRemove.push(key);
+      }
+    }
+
+    if (keysToRemove.length === 0) {
+      return;
+    }
+
+    keysToRemove.forEach((key) => CommonStorage.removeItem(key));
+    this._annotations.update((current) => {
+      const next = new Map(current);
+      for (const item of current.values()) {
+        if (!activeIds.has(item.id)) {
+          next.delete(item.id);
+        }
+      }
+      return next;
+    });
+  }
 }

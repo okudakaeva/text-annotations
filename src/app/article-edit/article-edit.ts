@@ -64,17 +64,17 @@ export class ArticleEdit implements OnDestroy {
 
   constructor () {
     effect(() => {
-      this.annotationsRenderer.initData(this.annotationsService.annotations());
-    });
-
-    effect(() => {
       const currentArticle = this.article();
+
       if (currentArticle) {
         this.articleForm.patchValue({
           title: currentArticle.title || '',
           text: currentArticle.text || '',
         });
+        this.annotationsService.pruneOrphansForArticle(currentArticle.id, currentArticle.text);
       }
+
+      this.annotationsRenderer.initData(this.annotationsService.annotations());
     });
   }
 

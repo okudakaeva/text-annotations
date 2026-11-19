@@ -1,11 +1,20 @@
 <div appTooltipContainer>
-  <h1>{{  currentArticle().title }}</h1>
-  <div
-    appSelectionTracker
-    [appArticleReadonlySync]="currentArticle()"
-    (selectionDetected)="onSelectionDetected($event)"
-    [innerHTML]="article().text | safeHtmlWithAnnotations"
-  ></div>
+  <div class="article-header">
+    <h1>{{ currentArticle().title }}</h1>
+    <app-annotations-sidebar-toggle [articleId]="currentArticle().id"/>
+  </div>
+
+  <div class="article-layout" [class.sidebar-open]="sidebarService.isOpen() && hasAnnotations()">
+    <div
+      class="article-content"
+      appSelectionTracker
+      [appArticleReadonlySync]="currentArticle()"
+      (selectionDetected)="onSelectionDetected($event)"
+      [innerHTML]="article().text | safeHtmlWithAnnotations"
+    ></div>
+
+    <app-annotations-sidebar [articleId]="currentArticle().id"/>
+  </div>
 </div>
 <app-toolbar>
   <div class="links">
