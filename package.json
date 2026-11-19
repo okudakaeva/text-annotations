@@ -1,6 +1,9 @@
 {
   "name": "text-annonations",
-  "version": "0.0.0",
+  "version": "1.2.0",
+  "author": "Oksana Kudakaeva <https://github.com/okudakaeva>",
+  "description": "Интерактивное аннотирование текста",
+  "license": "Custom Proprietary License (SEE IN LICENSE.md)",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -8,7 +11,11 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/okudakaeva/text-annotations.git"
+  },
+  "homepage": "https://okudakaeva.github.io/text-annotations/",
   "packageManager": "npm@11.6.2",
   "dependencies": {
     "@angular/common": "^21.2.0",
