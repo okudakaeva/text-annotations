@@ -1,22 +1,18 @@
 import { Routes } from '@angular/router';
-import { List } from './list/list';
-import { ArticleEdit } from './article-edit/article-edit';
-import { articleResolver } from './article-edit/article.resolver';
-import { NotFound } from '../components';
-import { Article } from './article/article';
 import { annotationsResolver } from './article-edit/annotations.resolver';
 import { articleTempIdResolver } from './article-edit/article-tempid.resolver';
 import { articleEditTitleResolver, articleViewTitleResolver, } from './article-edit/article-title.resolver';
+import { articleResolver } from './article-edit/article.resolver';
 
 export const routes: Routes = [
   {
     path: '',
-    component: List,
+    loadComponent: () => import('./list/list').then((m) => m.List),
     title: 'Список статей — Text Annotations',
   },
   {
     path: 'article/new',
-    component: ArticleEdit,
+    loadComponent: () => import('./article-edit/article-edit').then((m) => m.ArticleEdit),
     title: 'Новая статья — Text Annotations',
     resolve: {
       tempId: articleTempIdResolver,
@@ -24,7 +20,7 @@ export const routes: Routes = [
   },
   {
     path: 'article/:id',
-    component: Article,
+    loadComponent: () => import('./article/article').then((m) => m.Article),
     title: articleViewTitleResolver,
     resolve: {
       article: articleResolver,
@@ -33,7 +29,7 @@ export const routes: Routes = [
   },
   {
     path: 'article/:id/edit',
-    component: ArticleEdit,
+    loadComponent: () => import('./article-edit/article-edit').then((m) => m.ArticleEdit),
     title: articleEditTitleResolver,
     resolve: {
       article: articleResolver,
@@ -42,7 +38,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    component: NotFound,
+    loadComponent: () => import('../components/not-found/not-found').then((m) => m.NotFound),
     title: 'Страница не найдена — Text Annotations',
   },
 ];
