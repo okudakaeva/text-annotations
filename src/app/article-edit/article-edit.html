@@ -1,23 +1,27 @@
 <form [formGroup]="articleForm" (ngSubmit)="saveArticle()">
   <div class="article-form">
-    <input id="article-title" type="text" formControlName="title" placeholder="Придумайте заголовок">
+    <input id="article-title"
+           type="text"
+           formControlName="title"
+           placeholder="{{ dict['EDIT_ARTICLE_TITLE_PLACEHOLDER']}}"
+    />
     <div appTooltipContainer
          id='article-text'
          contenteditable="true"
          formControlName="text"
-         data-placeholder="Напишите текст статьи. Для создания аннотации к тексту выделите текст и нажмите кнопку создания аннотации под выделенным текстом"
+         [attr.data-placeholder]="dict['EDIT_ARTICLE_TEXT_PLACEHOLDER']"
          [class.empty]="isTextEmpty()"
          appSelectionTracker
          (selectionDetected)="onSelectionDetected($event)"
     ></div>
   </div>
   <app-toolbar>
-    <a routerLink="/">К списку статей</a>
+    <a routerLink="/">{{ dict['BTN_BACK_TO_LIST'] }}</a>
     <div class="actions">
       @if (!isCreationMode()) {
       <app-article-delete-button [article]="article()!" />
       }
-      <app-button title="Сохранить"/>
+      <app-button title="{{ dict['BTN_SAVE'] }}"/>
     </div>
   </app-toolbar>
   <app-annotation-button/>

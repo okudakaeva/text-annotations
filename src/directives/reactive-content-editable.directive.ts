@@ -2,6 +2,7 @@ import { Directive, ElementRef, forwardRef, HostListener, inject, OnDestroy, OnI
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import DOMPurify from 'dompurify';
 import { sanitizerConfig } from './sanitizer.cfg';
+import { dict } from '../dictionary';
 
 @Directive({
   selector:
@@ -139,7 +140,7 @@ export class ReactiveContentEditable implements ControlValueAccessor, OnInit, On
         return changedNodes.some(
           (node) =>
             node.nodeType !== Node.ELEMENT_NODE ||
-            !(node as HTMLElement).matches('span[data-has-tooltip], span[data-delete-annotation]')
+            !(node as HTMLElement).matches(`${ dict['MARK_BUTTON_SELECTOR'] }`)
         );
       });
 

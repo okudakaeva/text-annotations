@@ -3,8 +3,7 @@ import { Observable, tap } from 'rxjs';
 import { IArticle } from './article.service';
 import { CommonStorage } from './common-storage';
 import { mockHttpResponse } from './mock-http';
-
-const ANNOTATION_PREFIX = 'annotation_';
+import { dict } from '../dictionary';
 
 export interface IAnnotation {
   id: string;
@@ -26,10 +25,10 @@ export class AnnotationsService {
     for (let i = 0; i < CommonStorage.length; i++) {
       const key = CommonStorage.key(i);
 
-      if (key?.indexOf(ANNOTATION_PREFIX) === 0) {
+      if (key?.indexOf(dict['STORAGE_ANNOTATION_PREFIX']) === 0) {
         const annotation = JSON.parse(CommonStorage.getItem(key)!);
 
-        if (annotation.articleId === id || key.indexOf(`${ ANNOTATION_PREFIX }${ id }`) === 0) {
+        if (annotation.articleId === id || key.indexOf(`${ dict['STORAGE_ANNOTATION_PREFIX'] }${ id }`) === 0) {
           list.set(annotation.id, annotation);
         }
       }
@@ -41,7 +40,7 @@ export class AnnotationsService {
   }
 
   getAnnotation (id: IAnnotation['id']): Observable<IAnnotation | null> {
-    const annotation = CommonStorage.getItem(`${ ANNOTATION_PREFIX }${ id }`);
+    const annotation = CommonStorage.getItem(`${ dict['STORAGE_ANNOTATION_PREFIX'] }${ id }`);
     return mockHttpResponse<IAnnotation | null>({
       body: annotation ? JSON.parse(annotation) : null,
     });
@@ -49,7 +48,7 @@ export class AnnotationsService {
 
   createOrUpdate (annotation: IAnnotation, articleId: IArticle['id']): Observable<IAnnotation> {
     CommonStorage.setItem(
-      `${ ANNOTATION_PREFIX }${ annotation.id }`,
+      `${ dict['STORAGE_ANNOTATION_PREFIX'] }${ annotation.id }`,
       JSON.stringify({ ...annotation, articleId })
     );
 
@@ -65,11 +64,11 @@ export class AnnotationsService {
   }
 
   hasAnnotation (id: string): boolean {
-    return Boolean(CommonStorage.getItem(`${ ANNOTATION_PREFIX }${ id }`));
+    return Boolean(CommonStorage.getItem(`${ dict['STORAGE_ANNOTATION_PREFIX'] }${ id }`));
   }
 
   deleteAnnotation (id: IAnnotation['id']): Observable<null> {
-    CommonStorage.removeItem(`${ ANNOTATION_PREFIX }${ id }`);
+    CommonStorage.removeItem(`${ dict['STORAGE_ANNOTATION_PREFIX'] }${ id }`);
 
     return mockHttpResponse({ body: null }).pipe(
       tap(() => {
@@ -87,14 +86,14 @@ export class AnnotationsService {
 
     for (let i = 0; i < CommonStorage.length; i++) {
       const key = CommonStorage.key(i);
-      if (key?.startsWith(ANNOTATION_PREFIX)) {
+      if (key?.startsWith(dict['STORAGE_ANNOTATION_PREFIX'])) {
         const raw = CommonStorage.getItem(key);
         if (!raw) {
           continue;
         }
 
         const annotation = JSON.parse(raw);
-        if (annotation.articleId === articleId || key.startsWith(`${ ANNOTATION_PREFIX }${ articleId }`)) {
+        if (annotation.articleId === articleId || key.startsWith(`${ dict['STORAGE_ANNOTATION_PREFIX'] }${ articleId }`)) {
           keysToRemove.push(key);
         }
       }
@@ -112,8 +111,8 @@ export class AnnotationsService {
     temp.innerHTML = articleHtml;
 
     const activeIds = new Set<string>();
-    temp.querySelectorAll<HTMLElement>('mark[data-annotation-id]').forEach((mark) => {
-      const id = mark.getAttribute('data-annotation-id');
+    temp.querySelectorAll<HTMLElement>(dict['MARK_ANY_SELECTOR']).forEach((mark) => {
+      const id = mark.getAttribute(dict['ATTR_ANNOTATION_ID']);
       if (id) {
         activeIds.add(id);
       }
@@ -122,7 +121,7 @@ export class AnnotationsService {
     const keysToRemove: string[] = [];
     for (let i = 0; i < CommonStorage.length; i++) {
       const key = CommonStorage.key(i);
-      if (!key?.startsWith(ANNOTATION_PREFIX)) {
+      if (!key?.startsWith(dict['STORAGE_ANNOTATION_PREFIX'])) {
         continue;
       }
 
@@ -133,7 +132,7 @@ export class AnnotationsService {
 
       const annotation = JSON.parse(raw);
       const belongsToArticle =
-        annotation.articleId === articleId || key.startsWith(`${ ANNOTATION_PREFIX }${ articleId }`);
+        annotation.articleId === articleId || key.startsWith(`${ dict['STORAGE_ANNOTATION_PREFIX'] }${ articleId }`);
 
       if (belongsToArticle && !activeIds.has(annotation.id)) {
         keysToRemove.push(key);

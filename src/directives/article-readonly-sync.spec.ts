@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { ArticleService, IArticle } from '../services';
 import { ArticleReadonlySync } from './article-readonly-sync';
+import { dict } from '../dictionary';
 
 @Component({
   selector: 'app-test-host',
@@ -41,9 +42,9 @@ describe('ArticleReadonlySync', () => {
     await fixture.whenStable();
   });
 
-  it('не должен сохранять статью при добавлении чернового <mark data-no-tooltip="true">', async () => {
+  it(`не должен сохранять статью при добавлении чернового <${ dict['MARK_TAG'] } ${ dict['ATTR_NO_TOOLTIP'] }="true">`, async () => {
     const contentEl = fixture.nativeElement.querySelector('#content') as HTMLElement;
-    contentEl.innerHTML = '<p><mark data-annotation-id="a1" data-no-tooltip="true">Исходный</mark> текст статьи</p>';
+    contentEl.innerHTML = `<p><${ dict['MARK_TAG'] } ${ dict['ATTR_ANNOTATION_ID'] }="a1" ${ dict['ATTR_NO_TOOLTIP'] }="true">Исходный</${ dict['MARK_TAG'] }> текст статьи</p>`;
 
     await Promise.resolve();
     expect(articleServiceMock.createOrUpdate).not.toHaveBeenCalled();
@@ -52,26 +53,26 @@ describe('ArticleReadonlySync', () => {
   it('должен сохранять очищенный HTML после подтверждения аннотации и удалять служебные span', async () => {
     const contentEl = fixture.nativeElement.querySelector('#content') as HTMLElement;
     contentEl.innerHTML =
-      '<p><mark data-annotation-id="a1" data-no-tooltip="true">Исходный<span data-has-tooltip="true"></span></mark> текст статьи</p>';
+      `<p><${ dict['MARK_TAG'] } ${ dict['ATTR_ANNOTATION_ID'] }="a1" ${ dict['ATTR_NO_TOOLTIP'] }="true">Исходный<span ${ dict['ATTR_HAS_TOOLTIP'] }="true"></span></${ dict['MARK_TAG'] }> текст статьи</p>`;
     await Promise.resolve();
 
-    const mark = contentEl.querySelector('mark')!;
-    mark.removeAttribute('data-no-tooltip');
+    const mark = contentEl.querySelector(dict['MARK_TAG'])!;
+    mark.removeAttribute(dict['ATTR_NO_TOOLTIP']);
     await Promise.resolve();
 
     expect(articleServiceMock.createOrUpdate).toHaveBeenCalledTimes(1);
     expect(articleServiceMock.createOrUpdate).toHaveBeenCalledWith({
       id: 'art-1',
       title: 'Заголовок',
-      text: '<p><mark data-annotation-id="a1">Исходный</mark> текст статьи</p>',
+      text: `<p><${ dict['MARK_TAG'] } ${ dict['ATTR_ANNOTATION_ID'] }="a1">Исходный</${ dict['MARK_TAG'] }> текст статьи</p>`,
       timestamp: 1000,
     });
   });
 
-  it('не должен реагировать на добавление или удаление span[data-has-tooltip]', async () => {
+  it(`не должен реагировать на добавление или удаление span[${ dict['ATTR_HAS_TOOLTIP'] }]`, async () => {
     const contentEl = fixture.nativeElement.querySelector('#content') as HTMLElement;
     const tooltipIcon = document.createElement('span');
-    tooltipIcon.setAttribute('data-has-tooltip', 'true');
+    tooltipIcon.setAttribute(dict['ATTR_HAS_TOOLTIP'], 'true');
 
     contentEl.querySelector('p')!.appendChild(tooltipIcon);
     await Promise.resolve();

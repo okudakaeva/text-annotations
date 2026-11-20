@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ReactiveContentEditable } from './reactive-content-editable.directive';
+import { dict } from '../dictionary';
 
 @Component({
   imports: [ReactiveFormsModule, ReactiveContentEditable],
@@ -32,11 +33,11 @@ describe('ReactiveContentEditable', () => {
     host.control.valueChanges.subscribe((v) => emissions.push(v));
 
     host.control.setValue(
-      '<p>Привет, <mark data-annotation-id="a1" onclick="alert(1)">мир</mark>!</p><script>evil()</script>'
+      `<p>Привет, <${ dict['MARK_TAG'] } ${ dict['ATTR_ANNOTATION_ID'] }="a1" onclick="alert(1)">мир</${ dict['MARK_TAG'] }>!</p><script>evil()</script>`
     );
     await Promise.resolve();
 
-    expect(editorEl.innerHTML).toContain('<mark data-annotation-id="a1">мир</mark>');
+    expect(editorEl.innerHTML).toContain(`<${ dict['MARK_TAG'] } ${ dict['ATTR_ANNOTATION_ID'] }="a1">мир</${ dict['MARK_TAG'] }>`);
     expect(editorEl.innerHTML).not.toContain('onclick');
     expect(editorEl.innerHTML).not.toContain('<script>');
     expect(emissions.length).toBe(1);
@@ -71,15 +72,15 @@ describe('ReactiveContentEditable', () => {
   });
 
   it('should ignore technical tooltip span mutations in MutationObserver', async () => {
-    host.control.setValue('<p><mark data-annotation-id="a1">Фрагмент</mark></p>');
+    host.control.setValue(`<p><${ dict['MARK_TAG'] } ${ dict['ATTR_ANNOTATION_ID'] }="a1">Фрагмент</${ dict['MARK_TAG'] }></p>`);
     await Promise.resolve();
 
     const emissions: (string | null)[] = [];
     host.control.valueChanges.subscribe((v) => emissions.push(v));
 
-    const mark = editorEl.querySelector('mark')!;
+    const mark = editorEl.querySelector(dict['MARK_TAG'])!;
     const tooltipIcon = document.createElement('span');
-    tooltipIcon.setAttribute('data-has-tooltip', 'true');
+    tooltipIcon.setAttribute(dict['ATTR_HAS_TOOLTIP'], 'true');
     mark.appendChild(tooltipIcon);
 
     await Promise.resolve();

@@ -1,5 +1,6 @@
 import { HttpResponse } from '@angular/common/http';
 import { delay, map, Observable, of } from 'rxjs';
+import { dict } from '../dictionary';
 
 export interface MockResponseOptions<T> {
   body: T;
@@ -9,7 +10,7 @@ export interface MockResponseOptions<T> {
 
 export function mockHttpResponse<T> (
   options: MockResponseOptions<T>,
-  delayMs = 100
+  delayMs = dict['MOCK_HTTP_DELAY']
 ): Observable<T> {
   return of(
     new HttpResponse<T>({

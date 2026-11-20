@@ -1,6 +1,7 @@
 import { AfterViewInit, Directive, ElementRef, inject, input, OnDestroy, } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ArticleService, IArticle } from '../services';
+import { dict } from '../dictionary';
 
 @Directive({
   selector: '[appArticleReadonlySync]',
@@ -47,7 +48,7 @@ export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['data-no-tooltip', 'data-annotation-id'],
+      attributeFilter: [dict['ATTR_NO_TOOLTIP'], dict['ATTR_ANNOTATION_ID']],
     });
   }
 
@@ -55,7 +56,7 @@ export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
     return mutations.some((mutation) => {
       if (mutation.type === 'attributes') {
         const target = mutation.target as HTMLElement;
-        return target.tagName === 'MARK' && !target.hasAttribute('data-no-tooltip');
+        return target.tagName === 'MARK' && !target.hasAttribute(dict['ATTR_NO_TOOLTIP']);
       }
 
       const nodes = [...mutation.addedNodes, ...mutation.removedNodes];
@@ -65,15 +66,15 @@ export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
         }
         const element = node as HTMLElement;
 
-        if (element.matches('span[data-has-tooltip]')) {
+        if (element.matches(dict['MARK_BUTTON_SELECTOR'])) {
           return false;
         }
 
         if (element.tagName === 'MARK') {
-          return !element.hasAttribute('data-no-tooltip');
+          return !element.hasAttribute(dict['ATTR_NO_TOOLTIP']);
         }
 
-        return Boolean(element.querySelector('mark:not([data-no-tooltip])'));
+        return Boolean(element.querySelector(dict['MARK_SELECTOR']));
       });
     });
   }
@@ -81,9 +82,9 @@ export class ArticleReadonlySync implements AfterViewInit, OnDestroy {
   private getCleanHtml (): string {
     const clone = this.el.nativeElement.cloneNode(true) as HTMLElement;
 
-    clone.querySelectorAll('span[data-has-tooltip]').forEach((el) => el.remove());
+    clone.querySelectorAll(dict['MARK_BUTTON_SELECTOR']).forEach((el) => el.remove());
 
-    clone.querySelectorAll('mark[data-no-tooltip]').forEach((mark) => {
+    clone.querySelectorAll(dict['MARK_NO_TOOLTIP_SELECTOR']).forEach((mark) => {
       const parent = mark.parentNode;
       if (!parent) {
         return;

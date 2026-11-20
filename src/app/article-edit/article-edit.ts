@@ -5,6 +5,7 @@ import {
   inject,
   input,
   OnDestroy,
+  untracked,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -27,6 +28,7 @@ import {
   TooltipContainer,
 } from '../../components';
 import { AnnotationsRenderer, AnnotationsService, ArticleService, IArticle, } from '../../services';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-article-edit',
@@ -46,6 +48,7 @@ import { AnnotationsRenderer, AnnotationsService, ArticleService, IArticle, } fr
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleEdit implements OnDestroy {
+  readonly dict = dict;
   readonly article = input<IArticle>();
   readonly tempId = input<IArticle['id'] | null>(null);
   private isSaved = false;
@@ -58,23 +61,31 @@ export class ArticleEdit implements OnDestroy {
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
 
   readonly articleForm = new FormGroup({
-    title: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+    title: new FormControl('', [Validators.required, Validators.maxLength(dict['ARTICLE_TITLE_MAX_LENGTH'])]),
     text: new FormControl('', [() => this.textRequiredValidator()]),
   });
 
   constructor () {
     effect(() => {
-      const currentArticle = this.article();
+      const depArticle = this.article();
 
-      if (currentArticle) {
-        this.articleForm.patchValue({
-          title: currentArticle.title || '',
-          text: currentArticle.text || '',
-        });
-        this.annotationsService.pruneOrphansForArticle(currentArticle.id, currentArticle.text);
-      }
+      untracked(() => {
+        if (depArticle) {
+          this.articleForm.patchValue({
+            title: depArticle.title || '',
+            text: depArticle.text || '',
+          });
+          this.annotationsService.pruneOrphansForArticle(depArticle.id, depArticle.text);
+        }
+      });
+    });
 
-      this.annotationsRenderer.initData(this.annotationsService.annotations());
+    effect(() => {
+      const depAnnotations = this.annotationsService.annotations();
+
+      untracked(() => {
+        this.annotationsRenderer.initData(depAnnotations);
+      });
     });
   }
 

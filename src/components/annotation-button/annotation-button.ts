@@ -6,6 +6,7 @@ import { AnnotationButtonService } from './annotation-button.service';
 import { DialogService } from '../dialog/dialog.service';
 import { AnnotationDialog } from '../annotation-dialog/annotation-dialog';
 import { AnnotationsService, IAnnotation } from '../../services';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-annotation-button',
@@ -13,9 +14,9 @@ import { AnnotationsService, IAnnotation } from '../../services';
   template: `
     <app-button
       type="button"
-      hint="Создать аннотацию"
+      hint="{{ dict['NEW_ANNOTATION_HINT'] }}"
       (clickAction)="openAnnotationDialog()"
-      title="💬"
+      title="{{ dict['ICON_ANNOTATE'] }}"
       [style.left.px]="position().x"
       [style.top.px]="position().y"
       [style.visibility]="position().visible ? 'visible' : 'hidden'"
@@ -25,6 +26,7 @@ import { AnnotationsService, IAnnotation } from '../../services';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnnotationButton {
+  readonly dict = dict;
   private readonly positionService = inject(AnnotationButtonService);
   private readonly dialogService = inject(DialogService);
   private readonly route = inject(ActivatedRoute);
@@ -92,9 +94,9 @@ export class AnnotationButton {
       subRange.setStart(node, start);
       subRange.setEnd(node, end);
 
-      const annotationEl = document.createElement('mark');
-      annotationEl.setAttribute('data-annotation-id', annotationId);
-      annotationEl.setAttribute('data-no-tooltip', 'true');
+      const annotationEl = document.createElement(dict['MARK_TAG']);
+      annotationEl.setAttribute(dict['ATTR_ANNOTATION_ID'], annotationId);
+      annotationEl.setAttribute(dict['ATTR_NO_TOOLTIP'], 'true');
 
       subRange.surroundContents(annotationEl);
     }
@@ -151,7 +153,7 @@ export class AnnotationButton {
   }
 
   private removeAnnotationMark (id: string): void {
-    const annotationEls = document.querySelectorAll(`[data-annotation-id="${ id }"]`);
+    const annotationEls = document.querySelectorAll(`[${ dict['ATTR_ANNOTATION_ID'] }="${ id }"]`);
     const parents = new Set<Node>();
 
     annotationEls.forEach((annotationEl) => {
@@ -172,7 +174,7 @@ export class AnnotationButton {
 
   private markAnnotation (annotation: IAnnotation): void {
     const annotationEls = document.querySelectorAll<HTMLElement>(
-      `[data-annotation-id="${ annotation.id }"]`
+      `[${ dict['ATTR_ANNOTATION_ID'] }="${ annotation.id }"]`
     );
     if (annotationEls.length === 0) {
       return;
@@ -180,7 +182,7 @@ export class AnnotationButton {
 
     annotationEls.forEach((annotationEl) => {
       annotationEl.style.backgroundColor = annotation.color || '';
-      annotationEl.removeAttribute('data-no-tooltip');
+      annotationEl.removeAttribute(dict['ATTR_NO_TOOLTIP']);
     });
 
     annotationEls[0].dispatchEvent(new Event('input', { bubbles: true }));

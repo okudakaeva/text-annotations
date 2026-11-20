@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { finalize, Observable, take, tap } from 'rxjs';
 import { ArticleService, IArticle } from '../../services';
 import { ArticleDeleteButton, ArticleEditButton, PreloaderService, Toolbar, } from '../../components';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-list',
@@ -11,6 +12,7 @@ import { ArticleDeleteButton, ArticleEditButton, PreloaderService, Toolbar, } fr
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class List implements OnInit {
+  readonly dict = dict;
   private readonly preloader = inject(PreloaderService);
   private readonly articleService = inject(ArticleService);
 

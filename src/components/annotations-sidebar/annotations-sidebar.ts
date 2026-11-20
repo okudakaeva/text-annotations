@@ -11,8 +11,7 @@ import {
 import { AnnotationsRenderer, AnnotationsService, IAnnotation, IArticle, } from '../../services';
 import { TooltipService } from '../tooltip/tooltip.service';
 import { AnnotationsSidebarService } from './annotations-sidebar.service';
-
-const DEFAULT_ANNOTATION_COLOR = '#ffffe0';
+import { dict } from '../../dictionary';
 
 export interface IAnnotationSidebarItem extends IAnnotation {
   backgroundColor: string;
@@ -24,10 +23,10 @@ export interface IAnnotationSidebarItem extends IAnnotation {
   template: `
     <aside class="annotations-sidebar" [attr.aria-hidden]="!sidebarService.isOpen() || annotations().length === 0">
       <div class="annotations-sidebar-inner">
-        <h2>Аннотации ({{ annotations().length }})</h2>
+        <h2>{{ dict['SIDEBAR_TITLE'] }} ({{ annotations().length }})</h2>
 
         @if (annotations().length === 0) {
-        <p class="empty-notes">Выделите фрагмент текста, чтобы добавить первую аннотацию.</p>
+        <p class="empty-notes">{{ dict['SIDEBAR_EMPTY_TEXT'] }}</p>
         } @else {
         <ul class="annotations-list">
           @for (note of annotations(); track note.id) {
@@ -42,7 +41,7 @@ export interface IAnnotationSidebarItem extends IAnnotation {
               (focus)="highlightMarks(note.id, true)"
               (blur)="highlightMarks(note.id, false)"
               (click)="scrollToAnnotation(note.id, $event.currentTarget)"
-            >{{ note.text }}</button>
+            ><span class="link">{{ dict['LINK_MARK'] }}</span><span>{{ note.text }}</span></button>
           </li>
         }
         </ul>
@@ -54,6 +53,7 @@ export interface IAnnotationSidebarItem extends IAnnotation {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnnotationsSidebar {
+  readonly dict = dict;
   readonly sidebarService = inject(AnnotationsSidebarService);
   private readonly annotationsService = inject(AnnotationsService);
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
@@ -62,7 +62,6 @@ export class AnnotationsSidebar {
 
   readonly articleId = input.required<IArticle['id']>();
   readonly container = input<HTMLElement | null>(null);
-
   private readonly domTick = signal(0);
 
   constructor () {
@@ -87,8 +86,8 @@ export class AnnotationsSidebar {
     const root = this.container() ?? document;
     const orderMap = new Map<string, number>();
 
-    root.querySelectorAll<HTMLElement>('mark[data-annotation-id]').forEach((mark) => {
-      const id = mark.getAttribute('data-annotation-id');
+    root.querySelectorAll<HTMLElement>(dict['MARK_ANY_SELECTOR']).forEach((mark) => {
+      const id = mark.getAttribute(dict['ATTR_ANNOTATION_ID']);
       if (id && !orderMap.has(id)) {
         orderMap.set(id, orderMap.size);
       }
@@ -102,7 +101,7 @@ export class AnnotationsSidebar {
       })
       .sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0))
       .map((item) => {
-        const rawBg = item.color || DEFAULT_ANNOTATION_COLOR;
+        const rawBg = item.color || dict['ANNOTATION_COLOR'];
         return {
           ...item,
           backgroundColor: `color-mix(in srgb, ${ rawBg } 50%, transparent)`,
@@ -113,7 +112,7 @@ export class AnnotationsSidebar {
 
   highlightMarks (annotationId: string, isHovered: boolean): void {
     this.getMarks(annotationId).forEach((mark) =>
-      mark.classList.toggle('annotation-hover', isHovered)
+      mark.classList.toggle(dict['ANNOTATION_HOVER_CLASS'], isHovered)
     );
   }
 
@@ -132,10 +131,10 @@ export class AnnotationsSidebar {
 
     firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    marks.forEach((mark) => mark.classList.add('annotation-hover'));
+    marks.forEach((mark) => mark.classList.add(dict['ANNOTATION_HOVER_CLASS']));
     setTimeout(() => {
-      marks.forEach((mark) => mark.classList.remove('annotation-hover'));
-    }, 1200);
+      marks.forEach((mark) => mark.classList.remove(dict['ANNOTATION_HOVER_CLASS']));
+    }, dict['ANNOTATION_HIGHLIGHT_DELAY']);
 
     this.waitForScrollEnd().then(() => {
       void this.tooltipService.showTooltip(
@@ -169,7 +168,7 @@ export class AnnotationsSidebar {
     }
   }
 
-  private smoothScrollBy (element: HTMLElement, deltaY: number, durationMs = 170): void {
+  private smoothScrollBy (element: HTMLElement, deltaY: number, durationMs = dict['SIDEBAR_SCROLL_DURATION']): void {
     const startTop = element.scrollTop;
     const startTime = performance.now();
 
@@ -190,7 +189,7 @@ export class AnnotationsSidebar {
 
   private getMarks (annotationId: string): NodeListOf<HTMLElement> {
     const root = this.container() ?? document;
-    return root.querySelectorAll<HTMLElement>(`mark[data-annotation-id="${ annotationId }"]`);
+    return root.querySelectorAll<HTMLElement>(`${ dict['MARK_TAG'] }[${ dict['ATTR_ANNOTATION_ID'] }="${ annotationId }"]`);
   }
 
   private waitForScrollEnd (): Promise<void> {
@@ -202,14 +201,14 @@ export class AnnotationsSidebar {
         timer = setTimeout(() => {
           window.removeEventListener('scroll', onScroll, true);
           resolve();
-        }, 80);
+        }, dict['SIDEBAR_SCROLL_END_DEBOUNCE']);
       };
 
       window.addEventListener('scroll', onScroll, true);
       timer = setTimeout(() => {
         window.removeEventListener('scroll', onScroll, true);
         resolve();
-      }, 100);
+      }, dict['SIDEBAR_SCROLL_END_DEBOUNCE'] + 20);
     });
   }
 }

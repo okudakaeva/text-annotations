@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { AnnotationsRenderer } from './annotations-renderer';
 import { IAnnotationList } from './annotations.service';
+import { dict } from '../dictionary';
 
 describe('AnnotationsRenderer', () => {
   let renderer: AnnotationsRenderer;
@@ -18,7 +19,7 @@ describe('AnnotationsRenderer', () => {
 
   it('should apply background color to matching mark elements', () => {
     document.body.innerHTML = `
-      <p>Текст с <mark data-annotation-id="ann-1">первой</mark> и <mark data-annotation-id="ann-2">второй</mark> меткой</p>
+      <p>Текст с <${ dict['MARK_TAG'] } ${ dict['ATTR_ANNOTATION_ID'] }="ann-1">первой</${ dict['MARK_TAG'] }> и <${ dict['MARK_TAG'] } ${ dict['ATTR_ANNOTATION_ID'] }="ann-2">второй</${ dict['MARK_TAG'] }> меткой</p>
     `;
 
     const annotations: IAnnotationList = new Map([
@@ -28,8 +29,8 @@ describe('AnnotationsRenderer', () => {
 
     renderer.initData(annotations);
 
-    const mark1 = document.querySelector<HTMLElement>('[data-annotation-id="ann-1"]')!;
-    const mark2 = document.querySelector<HTMLElement>('[data-annotation-id="ann-2"]')!;
+    const mark1 = document.querySelector<HTMLElement>(`[${ dict['ATTR_ANNOTATION_ID'] }="ann-1"]`)!;
+    const mark2 = document.querySelector<HTMLElement>(`[${ dict['ATTR_ANNOTATION_ID'] }="ann-2"]`)!;
 
     expect(mark1.style.backgroundColor).toBe('rgb(255, 255, 0)');
     expect(mark2.style.backgroundColor).toBe('rgb(144, 238, 144)');
@@ -43,8 +44,8 @@ describe('AnnotationsRenderer', () => {
     ]);
     renderer.initData(annotations);
 
-    const mark = document.createElement('mark');
-    mark.setAttribute('data-annotation-id', 'ann-dynamic');
+    const mark = document.createElement(dict['MARK_TAG']);
+    mark.setAttribute(dict['ATTR_ANNOTATION_ID'], 'ann-dynamic');
     mark.textContent = 'Новый фрагмент';
     document.body.appendChild(mark);
 

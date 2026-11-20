@@ -3,8 +3,7 @@ import { Observable } from 'rxjs';
 import { AnnotationsService } from './annotations.service';
 import { CommonStorage } from './common-storage';
 import { mockHttpResponse } from './mock-http';
-
-const keyPrefix = 'article_';
+import { dict } from '../dictionary';
 
 export interface IArticle {
   id: string;
@@ -24,7 +23,7 @@ export class ArticleService {
     for (let i = 0; i < CommonStorage.length; i++) {
       const key = CommonStorage.key(i);
 
-      if (key?.indexOf(keyPrefix) === 0) {
+      if (key?.indexOf(dict['STORAGE_ARTICLE_PREFIX']) === 0) {
         list.push(JSON.parse(CommonStorage.getItem(key)!));
       }
     }
@@ -35,7 +34,7 @@ export class ArticleService {
   }
 
   getArticle (id: IArticle['id']): Observable<IArticle> {
-    const raw = CommonStorage.getItem(`${ keyPrefix }${ id }`);
+    const raw = CommonStorage.getItem(`${ dict['STORAGE_ARTICLE_PREFIX'] }${ id }`);
 
     if (!raw) {
       return mockHttpResponse<IArticle>({
@@ -59,13 +58,13 @@ export class ArticleService {
       timestamp: article.timestamp ?? Date.now(),
     };
 
-    CommonStorage.setItem(`${ keyPrefix }${ savedArticle.id }`, JSON.stringify(savedArticle));
+    CommonStorage.setItem(`${ dict['STORAGE_ARTICLE_PREFIX'] }${ savedArticle.id }`, JSON.stringify(savedArticle));
 
     return mockHttpResponse({ body: savedArticle });
   }
 
   deleteArticle (id: IArticle['id']): Observable<null> {
-    CommonStorage.removeItem(`${ keyPrefix }${ id }`);
+    CommonStorage.removeItem(`${ dict['STORAGE_ARTICLE_PREFIX'] }${ id }`);
     this.annotationsService.deleteByArticleId(id);
 
     return mockHttpResponse({ body: null });

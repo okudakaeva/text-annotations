@@ -10,6 +10,7 @@ import {
   Type,
 } from '@angular/core';
 import { Dialog } from './dialog';
+import { dict } from '../../dictionary';
 
 export interface DialogOpenOptions {
   bindings?: Record<string, unknown>;
@@ -36,7 +37,7 @@ export class DialogService {
       this.close();
     }
 
-    this.hostRef = document.createElement('app-dialog-host');
+    this.hostRef = document.createElement(dict['DIALOG_HOST']);
     this.dialogRef = createComponent(Dialog, {
       environmentInjector: this.injector,
       hostElement: this.hostRef,

@@ -6,21 +6,23 @@ import { ArticleDeleteDialog } from './article-delete-dialog';
 import { Button } from '../button/button';
 import { DialogService } from '../dialog/dialog.service';
 import { PreloaderService } from '../preloader/preloader.service';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-article-delete-button',
   imports: [Button],
   template: `
     <app-button
-      title="&#128465;"
+      title="{{ dict['ICON_TRASH'] }}"
       type="button"
-      hint="Удалить"
+      hint="{{ dict['BTN_DELETE'] }}"
       theme="light"
       (clickAction)="deleteArticle()"
     />`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ArticleDeleteButton {
+  readonly dict = dict;
   readonly article = input.required<IArticle>();
   readonly returnToHome = input<boolean>(true);
   readonly refreshData = input<() => Observable<unknown>>(() => of(null));

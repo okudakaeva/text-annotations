@@ -1,9 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { IAnnotationList } from './annotations.service';
-
-const MARK_SELECTOR = 'mark[data-annotation-id]';
-const DARK_TEXT = '#111111';
-const LIGHT_TEXT = '#ffffff';
+import { dict } from '../dictionary';
 
 @Injectable({ providedIn: 'root' })
 export class AnnotationsRenderer implements OnDestroy {
@@ -27,9 +24,9 @@ export class AnnotationsRenderer implements OnDestroy {
         return;
       }
 
-      const marks = document.querySelectorAll<HTMLElement>(MARK_SELECTOR);
+      const marks = document.querySelectorAll<HTMLElement>(dict['MARK_ANY_SELECTOR']);
       marks.forEach((mark) => {
-        const annotationId = mark.getAttribute('data-annotation-id');
+        const annotationId = mark.getAttribute(dict['ATTR_ANNOTATION_ID']);
         if (!annotationId) {
           return;
         }
@@ -55,8 +52,8 @@ export class AnnotationsRenderer implements OnDestroy {
           Array.from(mutation.addedNodes).some(
             (node) =>
               node.nodeType === Node.ELEMENT_NODE &&
-              ((node as HTMLElement).matches(MARK_SELECTOR) ||
-                Boolean((node as HTMLElement).querySelector(MARK_SELECTOR)))
+              ((node as HTMLElement).matches(dict['MARK_ANY_SELECTOR']) ||
+                Boolean((node as HTMLElement).querySelector(dict['MARK_ANY_SELECTOR'])))
           )
       );
 
@@ -99,12 +96,12 @@ export class AnnotationsRenderer implements OnDestroy {
 
     const rgb = this.parseHexColor(normalized) ?? this.resolveCssColorViaDom(normalized);
     if (!rgb) {
-      return DARK_TEXT;
+      return dict['DARK_TEXT'];
     }
 
     const [r, g, b] = rgb;
     const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-    const result = yiq >= 145 ? DARK_TEXT : LIGHT_TEXT;
+    const result = yiq >= 145 ? dict['DARK_TEXT'] : dict['LIGHT_TEXT'];
 
     this.contrastCache.set(normalized, result);
     return result;

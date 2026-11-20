@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, linkedSignal, } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  untracked,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   AnnotationButton,
@@ -13,6 +22,7 @@ import {
 } from '../../components';
 import { ArticleReadonlySync, SafeHtmlWithAnnotationsPipe, SelectionTracker, } from '../../directives';
 import { AnnotationsRenderer, AnnotationsService, IArticle, } from '../../services';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-article',
@@ -34,6 +44,7 @@ import { AnnotationsRenderer, AnnotationsService, IArticle, } from '../../servic
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Article {
+  readonly dict = dict;
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
   private readonly annotationButtonService = inject(AnnotationButtonService);
   private readonly annotationsService = inject(AnnotationsService);
@@ -44,9 +55,19 @@ export class Article {
 
   constructor () {
     effect(() => {
-      const current = this.article();
-      this.annotationsService.pruneOrphansForArticle(current.id, current.text);
-      this.annotationsRenderer.initData(this.annotationsService.annotations());
+      const depArticle = this.article();
+
+      untracked(() => {
+        this.annotationsService.pruneOrphansForArticle(depArticle.id, depArticle.text);
+      });
+    });
+
+    effect(() => {
+      const depAnnotations = this.annotationsService.annotations();
+
+      untracked(() => {
+        this.annotationsRenderer.initData(depAnnotations);
+      });
     });
   }
 

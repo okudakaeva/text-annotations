@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { ArticleService, IArticle } from '../../services';
 import { List } from './list';
+import { dict } from '../../dictionary';
 
 describe('List', () => {
   let component: List;
@@ -59,6 +60,6 @@ describe('List', () => {
     await fixture.whenStable();
 
     const heading = fixture.nativeElement.querySelector('h2') as HTMLElement | null;
-    expect(heading?.textContent?.trim()).toBe('Статей еще нет');
+    expect(heading?.textContent?.trim()).toBe(dict['LIST_EMPTY_TITLE']);
   });
 });

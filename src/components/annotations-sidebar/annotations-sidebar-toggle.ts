@@ -2,20 +2,23 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, } from '@a
 import { AnnotationsService, IArticle } from '../../services';
 import { AnnotationsSidebarService } from './annotations-sidebar.service';
 import { Button } from '../button/button';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-annotations-sidebar-toggle',
   template: `
+    @if (count() > 0) {
     <app-button
       type="button"
       class="sidebar-toggle"
       theme="light"
       [class.active]="sidebarService.isOpen()"
       [attr.aria-expanded]="sidebarService.isOpen()"
-      [hint]="sidebarService.isOpen() ? 'Скрыть список аннотаций' : 'Показать список аннотаций'"
-      title="☰"
+      [hint]="sidebarService.isOpen() ? dict['SIDEBAR_TOGGLE_HIDE'] : dict['SIDEBAR_TOGGLE_SHOW']"
+      title="{{ dict['ICON_TOGGLE'] }}"
       (clickAction)="sidebarService.toggle()"
     />
+    }
   `,
   imports: [
     Button,
@@ -23,6 +26,7 @@ import { Button } from '../button/button';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnnotationsSidebarToggle {
+  readonly dict = dict;
   readonly sidebarService = inject(AnnotationsSidebarService);
   private readonly annotationsService = inject(AnnotationsService);
 

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TooltipService } from './tooltip.service';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-tooltip',
@@ -17,25 +18,25 @@ import { TooltipService } from './tooltip.service';
         <button
                 type="button"
                 class="edit-button"
-                title="Редактировать аннотацию"
-                aria-label="Редактировать аннотацию"
+                title="{{ dict['EDIT_ANNOTATION_HINT'] }}"
+                aria-label="{{ dict['EDIT_ANNOTATION_HINT'] }}"
                 (click)="onEdit()"
-        >✎</button>
+        >{{ dict['ICON_EDIT'] }}</button>
         <button
                 type="button"
                 class="delete-button"
-                title="Удалить аннотацию"
-                aria-label="Удалить аннотацию"
+                title="{{ dict['DELETE_ANNOTATION_HINT'] }}"
+                aria-label="{{ dict['DELETE_ANNOTATION_HINT'] }}"
                 (click)="onDelete()"
-        >⌧</button>
+        >{{ dict['ICON_DELETE'] }}</button>
         @if (state().showCloseButton) {
         <button
-          type="button"
-          class="close-button"
-          title="Закрыть аннотацию"
-          aria-label="Закрыть аннотацию"
-          (click)="onClose()"
-        >×</button>
+                type="button"
+                class="close-button"
+                title="{{ dict['BTN_CLOSE'] }}"
+                aria-label="{{ dict['BTN_CLOSE'] }}"
+                (click)="onClose()"
+        >{{ dict['ICON_CLOSE'] }}</button>
         }
       </div>
   `,
@@ -43,6 +44,7 @@ import { TooltipService } from './tooltip.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Tooltip {
+  readonly dict = dict;
   private readonly tooltipService = inject(TooltipService);
   readonly state = this.tooltipService.state;
 

@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { AnnotationsService, IAnnotation } from '../../services';
 import { DialogService } from '../dialog/dialog.service';
 import { AnnotationDialog } from '../annotation-dialog/annotation-dialog';
+import { dict } from '../../dictionary';
 
 export interface TooltipState {
   annotationId: string | null;
@@ -119,12 +120,12 @@ export class TooltipService {
     await firstValueFrom(this.annotationsService.deleteAnnotation(annotationId));
 
     const marks = document.querySelectorAll<HTMLElement>(
-      `mark[data-annotation-id="${ annotationId }"]`
+      `${ dict['MARK_TAG'] }[${ dict['ATTR_ANNOTATION_ID'] }="${ annotationId }"]`
     );
     const parents = new Set<Node>();
 
     marks.forEach((mark) => {
-      mark.querySelectorAll('span[data-has-tooltip]').forEach((btn) => btn.remove());
+      mark.querySelectorAll(dict['MARK_BUTTON_SELECTOR']).forEach((btn) => btn.remove());
 
       const parent = mark.parentNode;
       if (!parent) {

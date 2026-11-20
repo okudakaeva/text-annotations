@@ -1,8 +1,6 @@
 import { AfterViewInit, Directive, ElementRef, inject, OnDestroy } from '@angular/core';
 import { TooltipService } from './tooltip.service';
-
-const markSelector = 'mark[data-annotation-id]:not([data-no-tooltip])';
-const buttonSelector = 'span[data-has-tooltip]';
+import { dict } from '../../dictionary';
 
 @Directive({
   selector: '[appTooltipContainer]',
@@ -30,7 +28,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
   }
 
   private getMarks (): HTMLElement[] {
-    return Array.from(this.el.nativeElement.querySelectorAll(markSelector));
+    return Array.from(this.el.nativeElement.querySelectorAll(dict['MARK_SELECTOR']));
   }
 
   private setupDomObserver (): void {
@@ -38,7 +36,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
       let needsReinit = false;
 
       for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'data-no-tooltip') {
+        if (mutation.type === 'attributes' && mutation.attributeName === dict['ATTR_NO_TOOLTIP']) {
           needsReinit = true;
           break;
         }
@@ -50,7 +48,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
         for (const node of mutation.addedNodes) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as HTMLElement;
-            if (element.matches(markSelector) || element.querySelector(markSelector)) {
+            if (element.matches(dict['MARK_SELECTOR']) || element.querySelector(dict['MARK_SELECTOR'])) {
               needsReinit = true;
               break;
             }
@@ -61,7 +59,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
           for (const node of mutation.removedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as HTMLElement;
-              if (element.matches(buttonSelector) || element.querySelector(buttonSelector)) {
+              if (element.matches(dict['MARK_BUTTON_SELECTOR']) || element.querySelector(dict['MARK_BUTTON_SELECTOR'])) {
                 needsReinit = true;
                 break;
               }
@@ -83,7 +81,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['data-no-tooltip'],
+      attributeFilter: [dict['ATTR_NO_TOOLTIP']],
     });
   }
 
@@ -104,7 +102,7 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
 
     const lastMarkById = new Map<string, HTMLElement>();
     marks.forEach((mark) => {
-      const id = mark.getAttribute('data-annotation-id');
+      const id = mark.getAttribute(dict['ATTR_ANNOTATION_ID']);
       if (id) {
         lastMarkById.set(id, mark);
       }
@@ -114,20 +112,20 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
 
     marks.forEach((mark) => {
       if (!lastMarks.has(mark)) {
-        mark.querySelectorAll(buttonSelector).forEach((btn) => btn.remove());
+        mark.querySelectorAll(dict['MARK_BUTTON_SELECTOR']).forEach((btn) => btn.remove());
         return;
       }
 
-      if (this.triggerElements!.has(mark) || mark.querySelector(buttonSelector)) {
+      if (this.triggerElements!.has(mark) || mark.querySelector(dict['MARK_BUTTON_SELECTOR'])) {
         return;
       }
 
       const triggerEl = document.createElement('span');
-      triggerEl.setAttribute('data-has-tooltip', 'true');
-      triggerEl.setAttribute('title', 'Аннотация');
+      triggerEl.setAttribute(dict['ATTR_HAS_TOOLTIP'], 'true');
+      triggerEl.setAttribute('title', dict['TOOLTIP_TRIGGER_HINT']);
 
       const clickHandler = () => {
-        const annotationId = mark.getAttribute('data-annotation-id');
+        const annotationId = mark.getAttribute(dict['ATTR_ANNOTATION_ID']);
         if (annotationId) {
           this.tooltipService.showTooltip(
             annotationId,
@@ -138,13 +136,13 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
       };
 
       const toggleHover = (isHovered: boolean) => {
-        const annotationId = mark.getAttribute('data-annotation-id');
+        const annotationId = mark.getAttribute(dict['ATTR_ANNOTATION_ID']);
         if (!annotationId) {
           return;
         }
         this.el.nativeElement
-          .querySelectorAll(`mark[data-annotation-id="${ annotationId }"]`)
-          .forEach((part: HTMLElement) => part.classList.toggle('annotation-hover', isHovered));
+          .querySelectorAll(`${ dict['MARK_TAG'] }[${ dict['ATTR_ANNOTATION_ID'] }="${ annotationId }"]`)
+          .forEach((part: HTMLElement) => part.classList.toggle(dict['ANNOTATION_HOVER_CLASS'], isHovered));
       };
 
       const enterHandler = () => toggleHover(true);
@@ -202,8 +200,8 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     }
 
     return Boolean(
-      target.closest('mark[data-annotation-id]') ||
-      target.closest('span[data-has-tooltip]')
+      target.closest(dict['MARK_ANY_SELECTOR']) ||
+      target.closest(dict['MARK_BUTTON_SELECTOR'])
     );
   }
 

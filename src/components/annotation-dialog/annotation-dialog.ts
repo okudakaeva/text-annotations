@@ -3,8 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { IAnnotation } from '../../services';
 import { Button } from '../button/button';
 import { Toolbar } from '../toolbar/toolbar';
-
-const DEFAULT_COLOR = '#ffffe0';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-annotation-dialog',
@@ -16,11 +15,11 @@ const DEFAULT_COLOR = '#ffffe0';
         <textarea
           formControlName="text"
           id="annotation-text"
-          placeholder="Введите текст аннотации..."
+          placeholder="{{ dict['DIALOG_ANNOTATION_PLACEHOLDER'] }}"
           rows="4"
           cols="30"
         ></textarea>
-        <label for="annotation-color">Выберите цвет:&nbsp;</label>
+        <label for="annotation-color">{{ dict['DIALOG_ANNOTATION_COLOR_LABEL'] }}&nbsp;</label>
         <input
           formControlName="color"
           id="annotation-color"
@@ -28,7 +27,6 @@ const DEFAULT_COLOR = '#ffffe0';
           list="annotation-color-presets"
         />
         <datalist id="annotation-color-presets">
-          <option value="#ffffe0"></option>
           <option value="#fff59d"></option>
           <option value="#c8e6c9"></option>
           <option value="#b3e5fc"></option>
@@ -40,7 +38,7 @@ const DEFAULT_COLOR = '#ffffe0';
           <div>
             @if (isEditMode() && onDeleteAnnotation()) {
             <app-button
-              title="Удалить"
+              title="{{ dict['BTN_DELETE'] }}"
               theme="dark"
               type="button"
               (clickAction)="deleteAnnotation()"
@@ -49,7 +47,7 @@ const DEFAULT_COLOR = '#ffffe0';
           </div>
           <div class="actions">
             <app-button
-              title="Отмена"
+              title="{{ dict['BTN_CANCEL'] }}"
               theme="light"
               type="button"
               (clickAction)="closeDialog()"
@@ -64,6 +62,7 @@ const DEFAULT_COLOR = '#ffffe0';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnnotationDialog {
+  readonly dict = dict;
   readonly annotation = input.required<IAnnotation>();
   readonly onSaveAnnotation = input.required<(a: IAnnotation) => Promise<void> | void>();
   readonly onDeleteAnnotation = input<(() => Promise<void> | void) | undefined>(undefined);
@@ -74,15 +73,15 @@ export class AnnotationDialog {
 
   readonly isEditMode = computed(() => Boolean(this.annotation().text?.trim()));
   readonly dialogTitle = computed(() =>
-    this.isEditMode() ? 'Редактирование аннотации' : 'Создание аннотации'
+    this.isEditMode() ? dict['DIALOG_ANNOTATION_EDIT'] : dict['DIALOG_ANNOTATION_CREATE']
   );
   readonly submitTitle = computed(() =>
-    this.isEditMode() ? 'Сохранить' : 'Создать'
+    this.isEditMode() ? dict['BTN_SAVE'] : dict['BTN_CREATE']
   );
 
   readonly annotationForm = new FormGroup({
-    text: new FormControl('', [Validators.required, Validators.maxLength(200)]),
-    color: new FormControl(DEFAULT_COLOR, { nonNullable: true }),
+    text: new FormControl('', [Validators.required, Validators.maxLength(dict['ANNOTATION_MAX_LENGTH'])]),
+    color: new FormControl(dict['ANNOTATION_COLOR'], { nonNullable: true }),
   });
 
   constructor () {
@@ -90,7 +89,7 @@ export class AnnotationDialog {
       const current = this.annotation();
       this.annotationForm.patchValue({
         text: current.text || '',
-        color: current.color || DEFAULT_COLOR,
+        color: current.color || dict['ANNOTATION_COLOR'],
       });
     });
   }
@@ -104,7 +103,7 @@ export class AnnotationDialog {
     const updated: IAnnotation = {
       ...this.annotation(),
       text: this.annotationForm.get('text')?.value?.trim() ?? '',
-      color: this.annotationForm.get('color')?.value ?? DEFAULT_COLOR,
+      color: this.annotationForm.get('color')?.value ?? dict['ANNOTATION_COLOR'],
     };
 
     await this.onSaveAnnotation()(updated);

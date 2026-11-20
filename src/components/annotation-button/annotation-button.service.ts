@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { dict } from '../../dictionary';
 
 export interface AnnotationButtonPosition {
   x: number;
@@ -11,9 +12,6 @@ export const annotationButtonStartPosition: AnnotationButtonPosition = {
   y: -1000,
   visible: false,
 };
-
-const BUTTON_SIZE = 36;
-const VIEWPORT_PADDING = 8;
 
 @Injectable({
   providedIn: 'root',
@@ -49,16 +47,16 @@ export class AnnotationButtonService {
       return;
     }
 
-    const rawX = lowestRect.right - BUTTON_SIZE;
+    const rawX = lowestRect.right - dict['ANNOTATION_BUTTON_SIZE'];
     const rawY = lowestRect.bottom + 6;
 
     const clampedX = Math.min(
-      Math.max(VIEWPORT_PADDING, rawX),
-      window.innerWidth - BUTTON_SIZE - VIEWPORT_PADDING
+      Math.max(dict['VIEWPORT_PADDING'], rawX),
+      window.innerWidth - dict['ANNOTATION_BUTTON_SIZE'] - dict['VIEWPORT_PADDING']
     );
     const clampedY = Math.min(
-      Math.max(VIEWPORT_PADDING, rawY),
-      window.innerHeight - BUTTON_SIZE - VIEWPORT_PADDING
+      Math.max(dict['VIEWPORT_PADDING'], rawY),
+      window.innerHeight - dict['ANNOTATION_BUTTON_SIZE'] - dict['VIEWPORT_PADDING']
     );
 
     this.position.set({

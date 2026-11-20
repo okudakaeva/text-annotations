@@ -7,6 +7,7 @@ import { AnnotationsService } from '../../services';
 import { DialogService } from '../dialog/dialog.service';
 import { AnnotationButton } from './annotation-button';
 import { AnnotationButtonService } from './annotation-button.service';
+import { dict } from '../../dictionary';
 
 @Component({
   selector: 'app-test-host',
@@ -76,7 +77,7 @@ describe('AnnotationButton', () => {
     selection.addRange(range);
   }
 
-  it('должен удалять временный тег <mark> и восстанавливать текст при закрытии диалога по Escape', async () => {
+  it(`должен удалять временный тег <${ dict['MARK_TAG'] }> и восстанавливать текст при закрытии диалога по Escape`, async () => {
     selectTextInTarget(8, 11); // слово "мир"
 
     const button = fixture.nativeElement.querySelector('app-annotation-button button') as HTMLButtonElement;
@@ -85,19 +86,19 @@ describe('AnnotationButton', () => {
     await Promise.resolve(); // ждём queueMicrotask в DialogContent
 
     const target = fixture.nativeElement.querySelector('#target') as HTMLElement;
-    expect(target.querySelector('mark[data-annotation-id]')).not.toBeNull();
+    expect(target.querySelector(dict['MARK_ANY_SELECTOR'])).not.toBeNull();
     expect(document.querySelector('app-annotation-dialog')).not.toBeNull();
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     await fixture.whenStable();
 
     expect(document.querySelector('app-annotation-dialog')).toBeNull();
-    expect(target.querySelector('mark')).toBeNull();
+    expect(target.querySelector(dict['MARK_TAG'])).toBeNull();
     expect(target.textContent).toBe('Привет, мир аннотаций!');
     expect(target.childNodes.length).toBe(1); // текстовые узлы склеены через normalize()
   });
 
-  it('должен удалять временный тег <mark> при нажатии кнопки "Отмена"', async () => {
+  it(`должен удалять временный тег <${ dict['MARK_TAG'] }> при нажатии кнопки "${dict['BTN_CANCEL']}"`, async () => {
     selectTextInTarget(8, 11);
 
     const button = fixture.nativeElement.querySelector('app-annotation-button button') as HTMLButtonElement;
@@ -107,18 +108,18 @@ describe('AnnotationButton', () => {
 
     const cancelBtn = Array.from(
       document.querySelectorAll<HTMLButtonElement>('app-annotation-dialog button')
-    ).find((btn) => btn.textContent?.trim() === 'Отмена');
+    ).find((btn) => btn.textContent?.trim() === dict['BTN_CANCEL']);
 
     expect(cancelBtn).toBeDefined();
     cancelBtn!.click();
     await fixture.whenStable();
 
     const target = fixture.nativeElement.querySelector('#target') as HTMLElement;
-    expect(target.querySelector('mark')).toBeNull();
+    expect(target.querySelector(dict['MARK_TAG'])).toBeNull();
     expect(target.textContent).toBe('Привет, мир аннотаций!');
   });
 
-  it('должен сохранять тег <mark> и применять цвет при создании аннотации', async () => {
+  it(`должен сохранять тег <${ dict['MARK_TAG'] }> и применять цвет при создании аннотации`, async () => {
     selectTextInTarget(8, 11);
 
     const button = fixture.nativeElement.querySelector('app-annotation-button button') as HTMLButtonElement;
@@ -132,23 +133,23 @@ describe('AnnotationButton', () => {
 
     const submitBtn = Array.from(
       document.querySelectorAll<HTMLButtonElement>('app-annotation-dialog button')
-    ).find((btn) => btn.textContent?.trim() === 'Создать')!;
+    ).find((btn) => btn.textContent?.trim() === dict['BTN_CREATE'])!;
     submitBtn.click();
 
     await fixture.whenStable();
     await Promise.resolve();
 
     const target = fixture.nativeElement.querySelector('#target') as HTMLElement;
-    const mark = target.querySelector<HTMLElement>('mark[data-annotation-id]');
+    const mark = target.querySelector<HTMLElement>(dict['MARK_ANY_SELECTOR']);
 
     expect(annotationsServiceMock.createOrUpdate).toHaveBeenCalledTimes(1);
     expect(mark).not.toBeNull();
     expect(mark?.textContent).toBe('мир');
-    expect(mark?.hasAttribute('data-no-tooltip')).toBe(false);
+    expect(mark?.hasAttribute(dict['ATTR_NO_TOOLTIP'])).toBe(false);
     expect(document.querySelector('app-annotation-dialog')).toBeNull();
   });
 
-  it('должен корректно оборачивать выделение через границу абзацев отдельными <mark> без поломки DOM', async () => {
+  it(`должен корректно оборачивать выделение через границу абзацев отдельными <${ dict['MARK_TAG'] }> без поломки DOM`, async () => {
     const hostEl = fixture.nativeElement as HTMLElement;
     const contentEl = hostEl.querySelector('#content') as HTMLElement;
     contentEl.innerHTML = `
@@ -172,17 +173,17 @@ describe('AnnotationButton', () => {
     await fixture.whenStable();
     await Promise.resolve();
 
-    const p1Marks = contentEl.querySelectorAll('#p1 mark[data-annotation-id]');
-    const p2Marks = contentEl.querySelectorAll('#p2 mark[data-annotation-id]');
+    const p1Marks = contentEl.querySelectorAll(`#p1 ${ dict['MARK_ANY_SELECTOR'] }`);
+    const p2Marks = contentEl.querySelectorAll(`#p2 ${ dict['MARK_ANY_SELECTOR'] }`);
 
     expect(p1Marks.length).toBe(1);
     expect(p2Marks.length).toBe(1);
     expect(p1Marks[0].textContent).toBe('абзац');
     expect(p2Marks[0].textContent).toBe('Второй');
-    expect(p1Marks[0].getAttribute('data-annotation-id')).toBe(
-      p2Marks[0].getAttribute('data-annotation-id')
+    expect(p1Marks[0].getAttribute(dict['ATTR_ANNOTATION_ID'])).toBe(
+      p2Marks[0].getAttribute(dict['ATTR_ANNOTATION_ID'])
     );
-    expect(contentEl.querySelector('mark p')).toBeNull();
+    expect(contentEl.querySelector(`${ dict['MARK_TAG'] } p`)).toBeNull();
   });
 
 
