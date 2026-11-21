@@ -22,12 +22,9 @@ import { dict } from '../../dictionary';
               list="annotation-color-presets"
             />
             <datalist id="annotation-color-presets">
-              <option value="#fff59d"></option>
-              <option value="#c8e6c9"></option>
-              <option value="#b3e5fc"></option>
-              <option value="#f8bbd0"></option>
-              <option value="#e1bee7"></option>
-              <option value="#ffe0b2"></option>
+              @for (preset of dict['ANNOTATION_COLOR_PRESETS'].split(', '); track preset) {
+              <option [value]="preset"></option>
+              }
             </datalist>
           </label>
           <textarea

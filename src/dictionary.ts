@@ -97,6 +97,7 @@ interface AppDictionary {
   readonly LIST_EMPTY_TITLE: string;
   readonly LIST_EMPTY_HINT: string;
 
+  readonly ANNOTATION_COLOR_PRESETS: string;
   readonly [cssVar: string]: string | number | boolean;
 }
 
@@ -173,6 +174,32 @@ const cache = new Map<string, unknown>([
   ['EDIT_ARTICLE_TEXT_PLACEHOLDER', 'Напишите текст статьи. Для создания аннотации к тексту выделите текст и нажмите кнопку создания аннотации под выделенным текстом'],
   ['LIST_EMPTY_TITLE', 'Статей еще нет'],
   ['LIST_EMPTY_HINT', 'Создайте первую статью'],
+
+  [
+    'ANNOTATION_COLOR_PRESETS',
+    [
+      '#fff59d',
+      '#c8e6c9',
+      '#b3e5fc',
+      '#ffe0b2',
+      '#e1bee7',
+      '#f8bbd0',
+      '#fff04d',
+      '#ffb347',
+      '#ff6b6b',
+      '#ff7eb9',
+      '#c084fc',
+      '#60a5fa',
+      '#38bdf8',
+      '#2dd4bf',
+      '#4ade80',
+      '#059669',
+      '#4f46e5',
+      '#1e293b',
+      '#7f1d1d',
+      '#3b0764',
+    ].join(', '),
+  ],
 ]);
 
 export const dict = new Proxy({} as AppDictionary, {
