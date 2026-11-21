@@ -67,11 +67,13 @@ export class DialogService {
     return this.dialogRef;
   }
 
-  close (): void {
+  close(): void {
     this.unlockScroll();
 
-    const overlay = this.hostRef?.querySelector('.dialog-overlay');
-    if (!overlay || this.closingTimer) {
+    const overlay = this.hostRef?.querySelector<HTMLElement>('.dialog-overlay');
+    const duration = overlay ? parseFloat(getComputedStyle(overlay).transitionDuration) : 0;
+
+    if (!overlay || !duration || this.closingTimer) {
       this.destroyDialog();
       return;
     }
@@ -80,7 +82,7 @@ export class DialogService {
     this.closingTimer = setTimeout(() => {
       this.closingTimer = null;
       this.destroyDialog();
-    }, 200);
+    }, duration * 1000);
   }
 
   private destroyDialog (): void {
