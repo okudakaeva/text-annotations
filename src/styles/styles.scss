@@ -67,6 +67,7 @@ mark {
   color: inherit;
   border-radius: 3px;
   padding: 0 3px;
+  margin: 0 -3px;
 
   span[data-has-tooltip] {
     color: inherit;
@@ -78,6 +79,8 @@ mark {
       color: inherit;
       text-shadow: 0 0 3px color-mix(in srgb, currentColor 35%, transparent);
       transition: opacity .15s ease;
+      padding: 0 1px;
+      margin: 0 -1px;
     }
 
     &:hover::before {

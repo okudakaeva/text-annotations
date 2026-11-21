@@ -6,7 +6,7 @@ import { filter } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
-export class AnnotationsSidebarService {
+export class NavigatorService {
   private readonly router = inject(Router);
   readonly isOpen = signal(false);
 

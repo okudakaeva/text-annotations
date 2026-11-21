@@ -1,16 +1,15 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Toolbar } from '../toolbar/toolbar';
 import { Button } from '../button/button';
-import { IArticle } from '../../services';
 import { dict } from '../../dictionary';
 
 @Component({
-  selector: 'app-article-delete-dialog',
+  selector: 'app-confirm-dialog',
   imports: [Toolbar, Button],
   template: `
-    <div class="delete-dialog">
-      <h3><strong>{{ dict['DIALOG_ARTICLE_DELETE_TITLE'] }}</strong></h3>
-      <p>{{ dict['DIALOG_ARTICLE_DELETE_CONFIRM'] }} «{{ article().title }}»?</p>
+    <div class="confirm-dialog">
+      <h3><strong>{{ title() }}</strong></h3>
+      <p>{{ message() }}</p>
       <app-toolbar>
         <div></div>
         <div class="actions">
@@ -21,7 +20,7 @@ import { dict } from '../../dictionary';
             (clickAction)="closeDialog()"
           />
           <app-button
-            title="{{ dict['BTN_DELETE'] }}"
+            [title]="confirmText()"
             type="button"
             (clickAction)="confirmDialog()"
           />
@@ -29,21 +28,25 @@ import { dict } from '../../dictionary';
       </app-toolbar>
     </div>
   `,
+  styleUrl: './confirm-dialog.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ArticleDeleteDialog {
+export class ConfirmDialog {
   readonly dict = dict;
-  readonly article = input.required<IArticle>();
-  readonly onConfirmDialog = input.required<() => void>();
+  readonly title = input.required<string>();
+  readonly message = input.required<string>();
+  readonly confirmText = input<string>(dict['BTN_DELETE']);
+  readonly onConfirm = input.required<() => Promise<void> | void>();
+
   readonly okEvent = output<void>();
   readonly cancelEvent = output<void>();
 
-  confirmDialog (): void {
-    this.onConfirmDialog()();
+  async confirmDialog(): Promise<void> {
+    await this.onConfirm()();
     this.okEvent.emit();
   }
 
-  closeDialog (): void {
+  closeDialog(): void {
     this.cancelEvent.emit();
   }
 }

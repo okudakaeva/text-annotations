@@ -13,6 +13,10 @@
   white-space: pre-wrap;
   overflow-wrap: break-word;
 
+  .tooltip-content {
+    container-type: size;
+  }
+
   &.visible {
     visibility: visible;
     opacity: 1;
@@ -38,7 +42,7 @@
     cursor: pointer;
     background-color: #fff;
     transition: opacity .15s ease;
-    margin: 4px 4px 0 0;
+    margin: 0 4px 0 0;
     box-shadow: inset 0 0 2px rgba(0, 0, 0, .35);
 
     &:hover{
@@ -47,5 +51,12 @@
   }
   .delete-button {
     margin-right: 0;
+  }
+
+  &.multiline {
+    .edit-button,
+    .delete-button {
+      margin-top: 4px;
+    }
   }
 }

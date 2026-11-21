@@ -12,9 +12,9 @@ import { RouterLink } from '@angular/router';
 import {
   AnnotationButton,
   AnnotationButtonService,
-  AnnotationsSidebar,
-  AnnotationsSidebarService,
-  AnnotationsSidebarToggle,
+  Navigator,
+  NavigatorService,
+  NavigatorToggle,
   ArticleDeleteButton,
   ArticleEditButton,
   Toolbar,
@@ -36,8 +36,8 @@ import { dict } from '../../dictionary';
     SelectionTracker,
     ArticleReadonlySync,
     AnnotationButton,
-    AnnotationsSidebar,
-    AnnotationsSidebarToggle,
+    Navigator,
+    NavigatorToggle,
   ],
   templateUrl: './article.html',
   styleUrl: './article.scss',
@@ -48,7 +48,7 @@ export class Article {
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
   private readonly annotationButtonService = inject(AnnotationButtonService);
   private readonly annotationsService = inject(AnnotationsService);
-  readonly sidebarService = inject(AnnotationsSidebarService);
+  readonly sidebarService = inject(NavigatorService);
 
   readonly article = input.required<IArticle>();
   readonly currentArticle = linkedSignal(() => this.article());

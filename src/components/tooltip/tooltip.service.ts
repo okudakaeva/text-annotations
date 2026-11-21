@@ -4,6 +4,7 @@ import { AnnotationsService, IAnnotation } from '../../services';
 import { DialogService } from '../dialog/dialog.service';
 import { AnnotationDialog } from '../annotation-dialog/annotation-dialog';
 import { dict } from '../../dictionary';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
 export interface TooltipState {
   annotationId: string | null;
@@ -11,6 +12,7 @@ export interface TooltipState {
   position: { x: number; y: number };
   isVisible: boolean;
   showCloseButton: boolean;
+  isMultiline: boolean;
   size: { width: number; height: number };
 }
 
@@ -20,6 +22,7 @@ const initialTooltipState: TooltipState = {
   position: { x: 0, y: 0 },
   isVisible: false,
   showCloseButton: true,
+  isMultiline: false,
   size: { width: 0, height: 0 },
 };
 
@@ -51,11 +54,12 @@ export class TooltipService {
       return;
     }
 
-    const size = await this.measureTooltipSize(annotation.text);
+    const measured = await this.measureTooltipSize(annotation.text);
     if (currentRequest !== this.requestCounter) {
       return;
     }
 
+    const size = { width: measured.width, height: measured.height };
     const position = this.calculatePosition(annotationRect, size);
     this.state.set({
       annotationId,
@@ -63,6 +67,7 @@ export class TooltipService {
       position,
       isVisible: true,
       showCloseButton: true,
+      isMultiline: measured.isMultiline,
       size,
     });
   }
@@ -99,21 +104,49 @@ export class TooltipService {
             this.annotationsService.createOrUpdate(updated, articleId)
           );
         },
-        onDeleteAnnotation: async () => {
-          await this.deleteById(annotationId);
+        onDeleteAnnotation: () => {
+          const preview =
+            stored.text.length > 60
+              ? `${stored.text.slice(0, 60)}…`
+              : stored.text;
+
+          this.dialogService.open(ConfirmDialog, {
+            bindings: {
+              title: dict['DIALOG_ANNOTATION_DELETE_TITLE'],
+              message: `${dict['DIALOG_ANNOTATION_DELETE_CONFIRM']}${dict['NBSP']}«${preview}»?`,
+              onConfirm: async () => {
+                await this.deleteById(annotationId);
+              },
+            },
+          });
         },
       },
     });
   }
 
-  async deleteCurrent (): Promise<void> {
+  async deleteCurrent(): Promise<void> {
     const annotationId = this.state().annotationId;
+    const annotationText = this.state().text;
     if (!annotationId) {
       return;
     }
 
     this.hide();
-    await this.deleteById(annotationId);
+
+    const preview =
+      annotationText.length > 60
+        ? `${annotationText.slice(0, 60)}…`
+        : annotationText;
+
+    this.dialogService.open(ConfirmDialog, {
+      bindings: {
+        title: dict['DIALOG_ANNOTATION_DELETE_TITLE'],
+        message: `${dict['DIALOG_ANNOTATION_DELETE_CONFIRM']}${dict['NBSP']}«${preview}»?`,
+        onConfirm: async () => {
+          await this.deleteById(annotationId);
+        },
+      },
+    });
   }
 
   private async deleteById (annotationId: string): Promise<void> {
@@ -148,13 +181,15 @@ export class TooltipService {
     firstElement?.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  private measureTooltipSize (text: string): Promise<{ width: number; height: number }> {
+  private measureTooltipSize(
+    text: string
+  ): Promise<{ width: number; height: number; isMultiline: boolean }> {
     return new Promise((resolve) => {
       const tooltipEl = document.querySelector<HTMLElement>('app-tooltip .tooltip');
 
       if (tooltipEl) {
         const clone = tooltipEl.cloneNode(true) as HTMLElement;
-        clone.classList.remove('visible');
+        clone.classList.remove('visible', 'multiline');
         Object.assign(clone.style, {
           left: '-10000px',
           top: '-10000px',
@@ -162,16 +197,28 @@ export class TooltipService {
           transition: 'none',
         });
 
-        const contentEl = clone.querySelector('.tooltip-content');
+        const contentEl = clone.querySelector<HTMLElement>('.tooltip-content');
         if (contentEl) {
           contentEl.textContent = text;
         }
 
         document.body.appendChild(clone);
         requestAnimationFrame(() => {
+          const isMultiline = contentEl
+            ? contentEl.getClientRects().length > 1 || text.includes('\n')
+            : text.includes('\n');
+
+          if (isMultiline) {
+            clone.classList.add('multiline');
+          }
+
           const rect = clone.getBoundingClientRect();
           clone.remove();
-          resolve({ width: Math.ceil(rect.width), height: Math.ceil(rect.height) });
+          resolve({
+            width: Math.ceil(rect.width),
+            height: Math.ceil(rect.height),
+            isMultiline,
+          });
         });
         return;
       }
@@ -192,7 +239,11 @@ export class TooltipService {
       requestAnimationFrame(() => {
         const rect = fallback.getBoundingClientRect();
         fallback.remove();
-        resolve({ width: Math.ceil(rect.width), height: Math.ceil(rect.height) });
+        resolve({
+          width: Math.ceil(rect.width),
+          height: Math.ceil(rect.height),
+          isMultiline: text.includes('\n'),
+        });
       });
     });
   }

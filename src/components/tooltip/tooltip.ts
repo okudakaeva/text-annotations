@@ -10,6 +10,7 @@ import { dict } from '../../dictionary';
               role="tooltip"
               [attr.aria-hidden]="!state().isVisible"
               [class.visible]="state().isVisible"
+              [class.multiline]="state().isMultiline"
               [style.left.px]="state().position.x"
               [style.top.px]="state().position.y"
       >

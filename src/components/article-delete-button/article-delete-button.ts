@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core
 import { Router } from '@angular/router';
 import { firstValueFrom, Observable, of } from 'rxjs';
 import { ArticleService, IArticle } from '../../services';
-import { ArticleDeleteDialog } from './article-delete-dialog';
 import { Button } from '../button/button';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 import { DialogService } from '../dialog/dialog.service';
 import { PreloaderService } from '../preloader/preloader.service';
 import { dict } from '../../dictionary';
@@ -32,14 +32,17 @@ export class ArticleDeleteButton {
   private readonly articleService = inject(ArticleService);
   private readonly dialogService = inject(DialogService);
 
-  deleteArticle (): void {
-    this.dialogService.open(ArticleDeleteDialog, {
+  deleteArticle(): void {
+    const current = this.article();
+
+    this.dialogService.open(ConfirmDialog, {
       bindings: {
-        article: this.article(),
-        onConfirmDialog: async () => {
+        title: dict['DIALOG_ARTICLE_DELETE_TITLE'],
+        message: `${dict['DIALOG_ARTICLE_DELETE_CONFIRM']}${dict['NBSP']}«${current.title}»?`,
+        onConfirm: async () => {
           this.preloader.show();
           try {
-            await firstValueFrom(this.articleService.deleteArticle(this.article().id));
+            await firstValueFrom(this.articleService.deleteArticle(current.id));
             await firstValueFrom(this.refreshData()());
 
             if (this.returnToHome()) {

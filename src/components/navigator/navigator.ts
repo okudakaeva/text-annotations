@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { AnnotationsRenderer, AnnotationsService, IAnnotation, IArticle, } from '../../services';
 import { TooltipService } from '../tooltip/tooltip.service';
-import { AnnotationsSidebarService } from './annotations-sidebar.service';
+import { NavigatorService } from './navigator.service';
 import { dict } from '../../dictionary';
 
 export interface IAnnotationSidebarItem extends IAnnotation {
@@ -19,21 +19,21 @@ export interface IAnnotationSidebarItem extends IAnnotation {
 }
 
 @Component({
-  selector: 'app-annotations-sidebar',
+  selector: 'app-navigator',
   template: `
-    <aside class="annotations-sidebar" [attr.aria-hidden]="!sidebarService.isOpen() || annotations().length === 0">
-      <div class="annotations-sidebar-inner">
+    <aside class="navigator" [attr.aria-hidden]="!sidebarService.isOpen() || annotations().length === 0">
+      <div class="navigator-inner">
         <h2>{{ dict['SIDEBAR_TITLE'] }} ({{ annotations().length }})</h2>
 
         @if (annotations().length === 0) {
         <p class="empty-notes">{{ dict['SIDEBAR_EMPTY_TEXT'] }}</p>
         } @else {
-        <ul class="annotations-list">
+        <ul class="navigator-list">
           @for (note of annotations(); track note.id) {
           <li>
             <button
               type="button"
-              class="annotation-card"
+              class="navigator-card"
               [style.background-color]="note.backgroundColor"
               [style.color]="note.textColor"
               (mouseenter)="highlightMarks(note.id, true)"
@@ -49,12 +49,12 @@ export interface IAnnotationSidebarItem extends IAnnotation {
       </div>
     </aside>
   `,
-  styleUrl: './annotations-sidebar.scss',
+  styleUrl: './navigator.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AnnotationsSidebar {
+export class Navigator {
   readonly dict = dict;
-  readonly sidebarService = inject(AnnotationsSidebarService);
+  readonly sidebarService = inject(NavigatorService);
   private readonly annotationsService = inject(AnnotationsService);
   private readonly annotationsRenderer = inject(AnnotationsRenderer);
   private readonly tooltipService = inject(TooltipService);
@@ -146,7 +146,7 @@ export class AnnotationsSidebar {
   }
 
   private scrollSidebarListByStep (cardButton: HTMLElement): void {
-    const listEl = cardButton.closest<HTMLElement>('.annotations-list');
+    const listEl = cardButton.closest<HTMLElement>('.navigator-list');
     const itemEl = cardButton.closest<HTMLElement>('li');
     if (!listEl || !itemEl) {
       return;

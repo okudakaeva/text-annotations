@@ -11,29 +11,33 @@ import { dict } from '../../dictionary';
   template: `
     <form [formGroup]="annotationForm" (ngSubmit)="createAnnotation()">
       <div class="annotation-dialog">
-        <h3>{{ dialogTitle() }}</h3>
-        <textarea
-          formControlName="text"
-          id="annotation-text"
-          placeholder="{{ dict['DIALOG_ANNOTATION_PLACEHOLDER'] }}"
-          rows="4"
-          cols="30"
-        ></textarea>
-        <label for="annotation-color">{{ dict['DIALOG_ANNOTATION_COLOR_LABEL'] }}&nbsp;</label>
-        <input
-          formControlName="color"
-          id="annotation-color"
-          type="color"
-          list="annotation-color-presets"
-        />
-        <datalist id="annotation-color-presets">
-          <option value="#fff59d"></option>
-          <option value="#c8e6c9"></option>
-          <option value="#b3e5fc"></option>
-          <option value="#f8bbd0"></option>
-          <option value="#e1bee7"></option>
-          <option value="#ffe0b2"></option>
-        </datalist>
+        <h3><strong>{{ dialogTitle() }}</strong></h3>
+        <fieldset>
+          <label for="annotation-color" class="color-field">
+            <span>{{ dict['DIALOG_ANNOTATION_COLOR_LABEL'] }}</span>
+            <input
+              formControlName="color"
+              id="annotation-color"
+              type="color"
+              list="annotation-color-presets"
+            />
+            <datalist id="annotation-color-presets">
+              <option value="#fff59d"></option>
+              <option value="#c8e6c9"></option>
+              <option value="#b3e5fc"></option>
+              <option value="#f8bbd0"></option>
+              <option value="#e1bee7"></option>
+              <option value="#ffe0b2"></option>
+            </datalist>
+          </label>
+          <textarea
+            formControlName="text"
+            id="annotation-text"
+            placeholder="{{ dict['DIALOG_ANNOTATION_PLACEHOLDER'] }}"
+            rows="4"
+            cols="50"
+          ></textarea>
+        </fieldset>
         <app-toolbar>
           <div>
             @if (isEditMode() && onDeleteAnnotation()) {

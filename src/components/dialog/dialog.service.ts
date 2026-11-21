@@ -25,6 +25,7 @@ export class DialogService {
   private hostRef: HTMLElement | null = null;
   private scrollPosition = 0;
   private isScrollLocked = false;
+  private closingTimer: ReturnType<typeof setTimeout> | null = null;
 
   private readonly injector = inject(EnvironmentInjector);
   private readonly appRef = inject(ApplicationRef);
@@ -33,6 +34,14 @@ export class DialogService {
     component: Type<T>,
     options: DialogOpenOptions,
   ): ComponentRef<Dialog> {
+    if (this.closingTimer) {
+      clearTimeout(this.closingTimer);
+      this.closingTimer = null;
+      this.destroyDialog();
+    } else if (this.dialogRef) {
+      this.destroyDialog();
+    }
+
     if (this.dialogRef) {
       this.close();
     }
@@ -60,7 +69,18 @@ export class DialogService {
 
   close (): void {
     this.unlockScroll();
-    this.destroyDialog();
+
+    const overlay = this.hostRef?.querySelector('.dialog-overlay');
+    if (!overlay || this.closingTimer) {
+      this.destroyDialog();
+      return;
+    }
+
+    overlay.classList.add('closing');
+    this.closingTimer = setTimeout(() => {
+      this.closingTimer = null;
+      this.destroyDialog();
+    }, 200);
   }
 
   private destroyDialog (): void {

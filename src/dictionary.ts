@@ -8,6 +8,7 @@ function decodeCssIcon(raw: string): string {
 }
 
 interface AppDictionary {
+  readonly NBSP: string;
   readonly APP_TITLE: string;
   readonly TITLE_SEPARATOR: string;
   readonly PAGE_LIST_TITLE: string;
@@ -81,6 +82,8 @@ interface AppDictionary {
   readonly DIALOG_ANNOTATION_COLOR_LABEL: string;
   readonly DIALOG_ARTICLE_DELETE_TITLE: string;
   readonly DIALOG_ARTICLE_DELETE_CONFIRM: string;
+  readonly DIALOG_ANNOTATION_DELETE_TITLE: string;
+  readonly DIALOG_ANNOTATION_DELETE_CONFIRM: string;
   readonly SIDEBAR_TITLE: string;
   readonly SIDEBAR_EMPTY_TEXT: string;
   readonly SIDEBAR_TOGGLE_SHOW: string;
@@ -98,6 +101,7 @@ interface AppDictionary {
 }
 
 const cache = new Map<string, unknown>([
+  ['NBSP', '\u00A0'],
   ['APP_TITLE', 'Text Annotations'],
   ['TITLE_SEPARATOR', ' — '],
   ['PAGE_LIST_TITLE', 'Список статей'],
@@ -155,6 +159,8 @@ const cache = new Map<string, unknown>([
   ['DIALOG_ANNOTATION_COLOR_LABEL', 'Выберите цвет:'],
   ['DIALOG_ARTICLE_DELETE_TITLE', 'Статья будет удалена'],
   ['DIALOG_ARTICLE_DELETE_CONFIRM', 'Вы подтверждаете удаление статьи'],
+  ['DIALOG_ANNOTATION_DELETE_TITLE', 'Аннотация будет удалена'],
+  ['DIALOG_ANNOTATION_DELETE_CONFIRM', 'Вы подтверждаете удаление аннотации'],
   ['SIDEBAR_TITLE', 'Аннотации'],
   ['SIDEBAR_EMPTY_TEXT', 'Выделите фрагмент текста, чтобы добавить первую аннотацию.'],
   ['SIDEBAR_TOGGLE_SHOW', 'Показать список аннотаций'],

@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, } from '@angular/core';
 import { AnnotationsService, IArticle } from '../../services';
-import { AnnotationsSidebarService } from './annotations-sidebar.service';
+import { NavigatorService } from './navigator.service';
 import { Button } from '../button/button';
 import { dict } from '../../dictionary';
 
 @Component({
-  selector: 'app-annotations-sidebar-toggle',
+  selector: 'app-navigator-toggle',
   template: `
     @if (count() > 0) {
     <app-button
@@ -25,9 +25,9 @@ import { dict } from '../../dictionary';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AnnotationsSidebarToggle {
+export class NavigatorToggle {
   readonly dict = dict;
-  readonly sidebarService = inject(AnnotationsSidebarService);
+  readonly sidebarService = inject(NavigatorService);
   private readonly annotationsService = inject(AnnotationsService);
 
   readonly articleId = input.required<IArticle['id']>();

@@ -3,7 +3,7 @@
   min-width: 0;
 }
 
-.annotations-sidebar {
+.navigator {
   overflow: hidden;
   min-width: 0;
   max-height: 0;
@@ -20,8 +20,7 @@
   }
 }
 
-
-.annotations-sidebar-inner {
+.navigator-inner {
   width: 300px;
   padding: 8px;
   border: 1px solid #e1e4e8;
@@ -40,7 +39,7 @@
   color: #57606a;
 }
 
-.annotations-list {
+.navigator-list {
   list-style: none;
   margin: 0;
   padding: 6px;
@@ -51,7 +50,7 @@
   overflow-y: auto;
 }
 
-.annotation-card {
+.navigator-card {
   display: flex;
   flex-direction: row;
   gap: 8px;
@@ -87,7 +86,7 @@
     order: -1;
   }
 
-  .annotations-sidebar-inner {
+  .navigator-inner {
     width: 100%;
   }
 }

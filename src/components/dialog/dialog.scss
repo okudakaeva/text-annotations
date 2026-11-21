@@ -1,8 +1,19 @@
 .dialog-overlay {
-  background: rgba(0, 0, 0, .15);
+  background: rgba(0, 0, 0, 0.15);
   position: fixed;
   inset: 0;
   z-index: 100500;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  &.closing {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 .dialog-window {
@@ -10,18 +21,28 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  padding: var(--block-padding-v);
+  transform: translate(-50%, -50%) scale(1);
   border-radius: 5px;
   box-shadow: var(--shadow);
   max-width: calc(100vw - 24px);
-  box-sizing: border-box;
+  opacity: 1;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  @starting-style {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+
+  .closing & {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
 }
 
 .dialog-content {
   min-width: 200px;
   min-height: 100px;
-  max-width: 500px;
+  max-width: 550px;
   max-height: 80dvh;
   overflow: auto;
 }
