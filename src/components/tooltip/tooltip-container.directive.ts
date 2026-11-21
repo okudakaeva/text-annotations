@@ -135,25 +135,10 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
         }
       };
 
-      const toggleHover = (isHovered: boolean) => {
-        const annotationId = mark.getAttribute(dict['ATTR_ANNOTATION_ID']);
-        if (!annotationId) {
-          return;
-        }
-        this.el.nativeElement
-          .querySelectorAll(`${ dict['MARK_TAG'] }[${ dict['ATTR_ANNOTATION_ID'] }="${ annotationId }"]`)
-          .forEach((part: HTMLElement) => part.classList.toggle(dict['ANNOTATION_HOVER_CLASS'], isHovered));
-      };
-
-      const enterHandler = () => toggleHover(true);
-      const leaveHandler = () => toggleHover(false);
-
       this.triggerHandlers!.set(triggerEl, clickHandler);
       this.triggerElements!.set(mark, triggerEl);
 
       triggerEl.addEventListener('click', clickHandler);
-      triggerEl.addEventListener('mouseenter', enterHandler, { signal: this.abortCtrl.signal });
-      triggerEl.addEventListener('mouseleave', leaveHandler, { signal: this.abortCtrl.signal });
       mark.appendChild(triggerEl);
     });
 
@@ -182,6 +167,48 @@ export class TooltipContainer implements AfterViewInit, OnDestroy {
     };
     document.addEventListener('mouseup', selectionHandler, { capture: true, signal: this.abortCtrl.signal });
     document.addEventListener('keyup', selectionHandler, { capture: true, signal: this.abortCtrl.signal });
+
+    const toggleHoverByEvent = (event: MouseEvent, isHovered: boolean) => {
+      const target = event.target as HTMLElement | null;
+      const mark = target?.closest<HTMLElement>(
+        `${ dict['MARK_TAG'] }[${ dict['ATTR_ANNOTATION_ID'] }]`
+      );
+      if (!mark) {
+        return;
+      }
+
+      event.stopPropagation();
+
+      const annotationId = mark.getAttribute(dict['ATTR_ANNOTATION_ID']);
+      if (!annotationId) {
+        return;
+      }
+
+      const related = event.relatedTarget as HTMLElement | null;
+      const relatedMark = related?.closest<HTMLElement>(
+        `${ dict['MARK_TAG'] }[${ dict['ATTR_ANNOTATION_ID'] }]`
+      );
+      if (relatedMark?.getAttribute(dict['ATTR_ANNOTATION_ID']) === annotationId) {
+        return;
+      }
+
+      this.el.nativeElement
+        .querySelectorAll(
+          `${ dict['MARK_TAG'] }[${ dict['ATTR_ANNOTATION_ID'] }="${ annotationId }"]`
+        )
+        .forEach((part: HTMLElement) => part.classList.toggle(dict['ANNOTATION_HOVER_CLASS'], isHovered));
+    };
+
+    this.el.nativeElement.addEventListener(
+      'mouseover',
+      (event: MouseEvent) => toggleHoverByEvent(event, true),
+      { signal: this.abortCtrl.signal }
+    );
+    this.el.nativeElement.addEventListener(
+      'mouseout',
+      (event: MouseEvent) => toggleHoverByEvent(event, false),
+      { signal: this.abortCtrl.signal }
+    );
   }
 
   private isClickInsideTooltipOrTrigger (event: MouseEvent): boolean {
